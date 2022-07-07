@@ -1,0 +1,5 @@
+{
+	"%1$s%784014$s": "%2$s",
+	"chat_emotes.commands.reload.success": "Reloaded emotes!",
+	"chat_emotes.commands.reload.failure": "Reload failed; keeping old emotes"
+}

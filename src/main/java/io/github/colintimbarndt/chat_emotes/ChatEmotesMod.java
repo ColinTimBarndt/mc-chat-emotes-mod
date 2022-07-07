@@ -1,9 +1,14 @@
 package io.github.colintimbarndt.chat_emotes;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
+import com.mojang.brigadier.Command;
+import com.mojang.brigadier.CommandDispatcher;
+import io.github.colintimbarndt.chat_emotes.command.ChatEmotesCommand;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.minecraft.command.CommandRegistryAccess;
+import net.minecraft.server.command.CommandManager;
+import net.minecraft.server.command.ServerCommandSource;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,16 +25,33 @@ public class ChatEmotesMod implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		try {
-			config = ChatEmotesConfig.load();
-		} catch (IOException | JsonParseException e) {
-			config = ChatEmotesConfig.DEFAULT;
-			LOGGER.error("Unable to read config", e);
+		reloadConfig();
+		CommandRegistrationCallback.EVENT.register(this::onRegisterCommands);
+	}
+
+	private void onRegisterCommands(
+			CommandDispatcher<ServerCommandSource> dispatcher,
+			CommandRegistryAccess reg,
+			CommandManager.RegistrationEnvironment env
+	) {
+		if (env.dedicated) {
+			ChatEmotesCommand.register(dispatcher);
 		}
-		LOGGER.info("Loaded %d emotes".formatted(config.emotes()));
 	}
 
 	public static @Nullable ChatEmotesConfig getConfig() {
 		return config;
+	}
+
+	public static boolean reloadConfig() {
+		try {
+			config = ChatEmotesConfig.load();
+			LOGGER.info("Loaded %d emotes".formatted(config.emotes()));
+			return true;
+		} catch (IOException | JsonParseException e) {
+			config = ChatEmotesConfig.DEFAULT;
+			LOGGER.error("Unable to read config", e);
+			return false;
+		}
 	}
 }

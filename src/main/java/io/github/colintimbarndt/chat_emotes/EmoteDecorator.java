@@ -4,6 +4,7 @@ import net.minecraft.network.message.MessageDecorator;
 import net.minecraft.text.*;
 import net.minecraft.util.Formatting;
 import org.jetbrains.annotations.NotNull;
+import static io.github.colintimbarndt.chat_emotes.TranslationHelper.fallback;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -27,9 +28,7 @@ public final class EmoteDecorator {
             // Triplets of (word index, begin, end)
             final var emoteOffsets = new ArrayList<Integer>();
 
-            final var fontStyle = Style.EMPTY.withFont(
-                    config.font()
-            );
+            final var fontStyle = Style.EMPTY.withFont(config.font()).withColor(Formatting.WHITE);
             final var highlightStyle = Style.EMPTY.withColor(Formatting.YELLOW);
 
             for (int i = 0; i < words.length; i++) {
@@ -83,8 +82,7 @@ public final class EmoteDecorator {
                             end = emoteOffsets.get(offIdx++);
                             mut.append(word.substring(prevEnd, begin));
                             final var raw = word.substring(begin, end);
-                            mut.append(Text.translatable(
-                                    "%1$s%784014$s",
+                            mut.append(fallback(
                                     Text.literal(raw).setStyle(highlightStyle),
                                     Text.literal(emote.character()).setStyle(fontStyle)
                             ).setStyle(
