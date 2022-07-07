@@ -1,38 +1,36 @@
 {
   "schemaVersion": 1,
-  "id": "modid",
+  "id": "chat-emotes",
   "version": "${version}",
 
-  "name": "Example Mod",
-  "description": "This is an example description! Tell everyone what your mod is about!",
+  "name": "Chat Emotes",
+  "description": "Server-Side chat emotes for Minecraft",
   "authors": [
-    "Me!"
+    "Colin Tim Barndt"
   ],
   "contact": {
-    "homepage": "https://fabricmc.net/",
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
+    "homepage": "https://github.com/ColinTimBarndt/fabric_chat-emotes",
+    "sources": "https://github.com/ColinTimBarndt/fabric_chat-emotes"
   },
 
-  "license": "CC0-1.0",
-  "icon": "assets/modid/icon.png",
+  "license": "CC-BY-SA-4.0",
+  "icon": "assets/chat-emotes/icon.png",
 
   "environment": "*",
   "entrypoints": {
     "main": [
-      "net.fabricmc.example.ExampleMod"
+      "io.github.colintimbarndt.chat_emotes.ChatEmotesMod"
     ]
   },
   "mixins": [
-    "modid.mixins.json"
+    "chat-emotes.mixins.json"
   ],
 
   "depends": {
     "fabricloader": ">=0.14.6",
     "fabric": "*",
     "minecraft": "~1.19",
-    "java": ">=17"
+    "java": ">=16"
   },
-  "suggests": {
-    "another-mod": "*"
-  }
+  "suggests": {}
 }
