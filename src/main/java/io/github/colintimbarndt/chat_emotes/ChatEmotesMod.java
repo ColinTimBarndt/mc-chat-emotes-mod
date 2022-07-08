@@ -1,10 +1,10 @@
 package io.github.colintimbarndt.chat_emotes;
 
 import com.google.gson.JsonParseException;
-import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import io.github.colintimbarndt.chat_emotes.command.ChatEmotesCommand;
-import net.fabricmc.api.ModInitializer;
+import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.server.command.CommandManager;
@@ -15,18 +15,21 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
-public class ChatEmotesMod implements ModInitializer {
-	// This logger is used to write text to the console and the log file.
-	// It is considered best practice to use your mod id as the logger's name.
-	// That way, it's clear which mod wrote info, warnings, and errors.
+public class ChatEmotesMod implements DedicatedServerModInitializer, ClientModInitializer {
+	public static final String MODID = "chat_emotes";
 	public static final Logger LOGGER = LoggerFactory.getLogger("chat-emotes");
 
 	private static ChatEmotesConfig config = null;
 
 	@Override
-	public void onInitialize() {
+	public void onInitializeServer() {
 		reloadConfig();
 		CommandRegistrationCallback.EVENT.register(this::onRegisterCommands);
+	}
+
+	@Override
+	public void onInitializeClient() {
+		//
 	}
 
 	private void onRegisterCommands(
