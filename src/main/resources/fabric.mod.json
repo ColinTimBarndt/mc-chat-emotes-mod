@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "id": "chat-emotes",
+  "id": "chat_emotes",
   "version": "${version}",
 
   "name": "Chat Emotes",
@@ -15,11 +15,14 @@
   },
 
   "license": "CC-BY-SA-4.0",
-  "icon": "assets/chat-emotes/icon.png",
+  "icon": "assets/chat_emotes/icon.png",
 
   "environment": "*",
   "entrypoints": {
     "server": [
+      "io.github.colintimbarndt.chat_emotes.ChatEmotesMod"
+    ],
+    "client": [
       "io.github.colintimbarndt.chat_emotes.ChatEmotesMod"
     ]
   },
@@ -31,7 +34,7 @@
     "fabricloader": ">=0.14.6",
     "fabric": "*",
     "minecraft": "~1.19",
-    "java": ">=16"
+    "java": ">=17"
   },
   "suggests": {}
 }

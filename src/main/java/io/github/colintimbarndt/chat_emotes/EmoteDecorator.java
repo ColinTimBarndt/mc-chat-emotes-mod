@@ -1,107 +1,120 @@
 package io.github.colintimbarndt.chat_emotes;
 
-import net.minecraft.network.message.MessageDecorator;
-import net.minecraft.text.*;
-import net.minecraft.util.Formatting;
+import io.github.colintimbarndt.chat_emotes.config.ChatEmotesConfig;
+import io.github.colintimbarndt.chat_emotes.data.Emote;
+import io.github.colintimbarndt.chat_emotes.data.EmoteData;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.*;
+import net.minecraft.network.chat.contents.LiteralContents;
+import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.NotNull;
-import static io.github.colintimbarndt.chat_emotes.TranslationHelper.fallback;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.concurrent.CompletableFuture;
 
+import static io.github.colintimbarndt.chat_emotes.TranslationHelper.fallback;
+
 public final class EmoteDecorator {
-    public static final MessageDecorator EMOTES = (sender, message) -> {
-        final var config = ChatEmotesMod.getConfig();
-        if (config == null) return CompletableFuture.completedFuture(message);
-        return CompletableFuture.completedFuture(replaceEmotes(message, config));
-    };
+    public static final ChatDecorator EMOTES =
+            (sender, message) -> CompletableFuture.completedFuture(replaceEmotes(sender, message));
 
-    public static @NotNull Text replaceEmotes(@NotNull Text text, @NotNull ChatEmotesConfig config) {
-        final var content = text.getContent();
-        MutableText mut = null;
-        if (content instanceof LiteralTextContent) {
-            final var lit = ((LiteralTextContent) content).string();
-            final var words = lit.split(" ");
-            final var emoteTypes = new ArrayList<ChatEmotesConfig.Emote>(0);
-            final var emoteIdx = new HashSet<Integer>(0);
-            // Triplets of (word index, begin, end)
-            final var emoteOffsets = new ArrayList<Integer>();
+    private static final Style FONT_BASE_STYLE = Style.EMPTY.withColor(ChatFormatting.WHITE);
+    private static final Style HIGHLIGHT_STYLE = Style.EMPTY.withColor(ChatFormatting.YELLOW);
 
-            final var fontStyle = Style.EMPTY.withFont(config.font()).withColor(Formatting.WHITE);
-            final var highlightStyle = Style.EMPTY.withColor(Formatting.YELLOW);
+    private static @Nullable Emote emoteForAlias(String alias) {
+        final var dataList = ChatEmotesMod.EMOTE_DATA_LOADER.getLoadedEmoteData();
+        for (EmoteData data : dataList) {
+            final var result = data.emoteForAlias(alias);
+            if (result != null) return result;
+        }
+        return null;
+    }
 
-            for (int i = 0; i < words.length; i++) {
-                final String word = words[i];
-                if (config.isSpecialEmote(word)) {
-                    emoteTypes.add(config.getEmote(word));
-                    emoteIdx.add(i);
-                    emoteOffsets.add(i);
-                    emoteOffsets.add(0);
-                    emoteOffsets.add(word.length());
+    private static @Nullable Emote emoteForEmoticon(String emoticon) {
+        final var dataList = ChatEmotesMod.EMOTE_DATA_LOADER.getLoadedEmoteData();
+        for (EmoteData data : dataList) {
+            final var result = data.emoteForEmoticon(emoticon);
+            if (result != null) return result;
+        }
+        return null;
+    }
+
+    public static @NotNull Component createEmoteComponent(@NotNull Emote emote, String fallback) {
+        return fallback(
+                Component.literal(fallback),
+                Component.literal(String.valueOf(emote.character()))
+                        .setStyle(
+                                FONT_BASE_STYLE.withFont(emote.font())
+                                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                                                Component.literal(":" + emote.aliases()[0] + ":")
+                                                        .setStyle(HIGHLIGHT_STYLE)
+                                        ))
+                        )
+        );
+    }
+
+    public static @NotNull Component replaceEmotes(ServerPlayer sender, @NotNull Component comp) {
+        final var content = comp.getContents();
+        MutableComponent mut = null;
+        if (content instanceof final LiteralContents literalContent) {
+            final var text = literalContent.text();
+            int startClip = 0;
+            int startAlias = -1;
+            int startEmoticon = 0;
+            for (int i = 0; i < text.length(); i++) {
+                final char ch = text.charAt(i);
+                if (ch == ':') {
+                    if (startAlias == -1 || startAlias == i) {
+                        startAlias = i + 1;
+                    } else {
+                        final var alias = text.substring(startAlias, i);
+                        final var emote = emoteForAlias(alias);
+                        if (emote == null) {
+                            startAlias = i + 1;
+                        } else {
+                            if (mut == null) mut = Component.empty();
+                            mut.append(text.substring(startClip, startAlias - 1));
+                            mut.append(createEmoteComponent(emote, ":" + alias + ":"));
+                            startClip = i + 1;
+                            startAlias = -1;
+                        }
+                    }
                     continue;
                 }
-                int col1 = 0, col2;
-                while (true) {
-                    col1 = word.indexOf(':', col1);
-                    if (col1 < 0) break;
-                    col2 = word.indexOf(':', col1 + 1);
-                    if (col2 < 0) break;
-                    final var emote = config.getEmote(word.substring(col1 + 1, col2));
-                    if (emote != null) {
-                        emoteTypes.add(emote);
-                        emoteIdx.add(i);
-                        emoteOffsets.add(i);
-                        emoteOffsets.add(col1);
-                        emoteOffsets.add(col2 + 1);
-                    }
-                    col1 = col2 + 1;
-                }
-            }
-            if (!emoteIdx.isEmpty()) {
-                int offIdx = 0;
-                int emotyIdx = 0;
-                mut = Text.literal("");
-                mut.setStyle(text.getStyle());
-                var buf = new StringBuilder();
-                boolean space = false;
-                for (int i = 0; i < words.length; i++, space = true) {
-                    if (space) {
-                        buf.append(' ');
-                    }
-                    if (!emoteIdx.contains(i)) {
-                        buf.append(words[i]);
-                    } else {
-                        final var word = words[i];
-                        int prevEnd = 0, begin, end = 0;
-                        mut.append(buf.toString());
-                        while (offIdx < emoteOffsets.size() && i == emoteOffsets.get(offIdx)) {
-                            final var emote = emoteTypes.get(emotyIdx++);
-                            offIdx++;
-                            begin = emoteOffsets.get(offIdx++);
-                            end = emoteOffsets.get(offIdx++);
-                            mut.append(word.substring(prevEnd, begin));
-                            final var raw = word.substring(begin, end);
-                            mut.append(fallback(
-                                    Text.literal(raw).setStyle(highlightStyle),
-                                    Text.literal(emote.character()).setStyle(fontStyle)
-                            ).setStyle(
-                                    Style.EMPTY.withHoverEvent(HoverEvent.Action.SHOW_TEXT.buildHoverEvent(
-                                            Text.literal(":" + emote.name() + ":")
-                                                    .setStyle(Style.EMPTY.withColor(Formatting.YELLOW))
-                                    ))
-                            ));
-                            prevEnd = end;
+                if (ch == ' ') {
+                    startAlias = -1;
+                    if (startEmoticon != i) {
+                        final var emoticon = text.substring(startEmoticon, i);
+                        final var emote = emoteForEmoticon(emoticon);
+                        if (emote != null) {
+                            if (mut == null) mut = Component.empty();
+                            mut.append(text.substring(startClip, startEmoticon));
+                            mut.append(createEmoteComponent(emote, emoticon));
+                            startClip = i;
                         }
-                        buf = new StringBuilder(word.substring(end));
                     }
+                    startEmoticon = i + 1;
                 }
-                if (!buf.isEmpty()) {
-                    mut.append(buf.toString());
-                }
-                text.getSiblings().forEach(mut::append);
             }
+            if (startEmoticon != text.length()) {
+                final var emoticon = text.substring(startEmoticon);
+                final var emote = emoteForEmoticon(emoticon);
+                if (emote != null) {
+                    if (mut == null) mut = Component.empty();
+                    mut.append(text.substring(startClip, startEmoticon));
+                    mut.append(createEmoteComponent(emote, emoticon));
+                    startClip = text.length();
+                }
+            }
+            if (mut == null) return comp;
+            if (startClip != text.length()) {
+                mut.append(text.substring(startClip));
+            }
+            comp.getSiblings().forEach(mut::append);
+            return mut;
         }
-        return mut != null ? mut : text;
+        return comp;
     }
 }

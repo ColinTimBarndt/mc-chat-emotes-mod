@@ -3,7 +3,7 @@ package io.github.colintimbarndt.chat_emotes.mixin;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonParseException;
 import io.github.colintimbarndt.chat_emotes.ChatEmotesMod;
-import net.minecraft.util.Language;
+import net.minecraft.locale.Language;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -15,15 +15,15 @@ import java.io.IOException;
 import java.util.function.BiConsumer;
 
 import static io.github.colintimbarndt.chat_emotes.ChatEmotesMod.LOGGER;
-import static io.github.colintimbarndt.chat_emotes.ChatEmotesMod.MODID;
+import static io.github.colintimbarndt.chat_emotes.ChatEmotesMod.MOD_ID;
 
 @Mixin(Language.class)
 public class LanguageMixin {
     @Inject(
-            method = "create()Lnet/minecraft/util/Language;",
+            method = "loadDefault",
             at = @At(
                     value = "INVOKE",
-                    target = "load(Ljava/io/InputStream;Ljava/util/function/BiConsumer;)V",
+                    target = "Lnet/minecraft/locale/Language;loadFromJson(Ljava/io/InputStream;Ljava/util/function/BiConsumer;)V",
                     shift = At.Shift.AFTER,
                     remap = false
             ),
@@ -34,10 +34,10 @@ public class LanguageMixin {
             ImmutableMap.Builder<String, String> builder,
             BiConsumer<String, String> keyAdder
     ) {
-        final var path = "/assets/" + MODID + "/lang/en_us.json";
+        final var path = "/assets/" + MOD_ID + "/lang/en_us.json";
         try (final var stream = ChatEmotesMod.class.getResourceAsStream(path)) {
             if (stream == null) throw new FileNotFoundException();
-            Language.load(stream, (k, v) -> {
+            Language.loadFromJson(stream, (k, v) -> {
                 if (!k.startsWith("%")) keyAdder.accept(k, v);
             });
         } catch (JsonParseException | IOException ex) {
