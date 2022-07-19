@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://colintimbarndt.github.io/fabric_chat-emotes/schema/emote.schema.json",
+  "title": "Chat Emotes",
+  "description": "Defines all emotes of this resource",
+  "$defs": {
+    "resource_location": {
+      "type": "string",
+      "pattern": "^([\\da-z_.-]+:)?[\\da-z_./-]+$",
+      "title": "Resource Location",
+      "description": "https://minecraft.fandom.com/wiki/Resource_location"
+    }
+  },
+  "type": "object",
+  "required": [
+    "type"
+  ],
+  "properties": {
+    "type": {
+      "$ref": "#/$defs/resource_location"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "chat_emotes:unicode"
+          }
+        }
+      },
+      "then": {
+        "$ref": "./types/unicode.schema.json"
+      }
+    }
+  ]
+}
