@@ -1,5 +1,7 @@
 <img alt="Smiley Emoji" src="./src/main/resources/assets/chat_emotes/icon.png" width="100" align="right" />
 
+![Build Status (1.19)](https://img.shields.io/github/workflow/status/ColinTimBarndt/fabric_chat-emotes/build/1.19?label=build%201.19)
+
 # Chat Emotes
 
 Chat Emotes is a server-side mod that utilizes the Chat Preview feature introduced in Minecraft 1.19 to provide the use of emotes like Emojis inspired by Discord and Twitch chat.
