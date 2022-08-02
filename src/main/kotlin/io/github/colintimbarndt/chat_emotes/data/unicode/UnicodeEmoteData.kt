@@ -1,429 +1,385 @@
-package io.github.colintimbarndt.chat_emotes.data.unicode;
+package io.github.colintimbarndt.chat_emotes.data.unicode
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSyntaxException;
-import io.github.colintimbarndt.chat_emotes.data.Emote;
-import io.github.colintimbarndt.chat_emotes.data.EmoteData;
-import io.github.colintimbarndt.chat_emotes.data.EmoteDataSerializer;
-import io.github.colintimbarndt.chat_emotes.data.FontGenerator;
-import io.github.colintimbarndt.chat_emotes.data.unicode.joiner.UnicodeJoiner;
-import io.github.colintimbarndt.chat_emotes.data.unicode.pattern.UnicodePattern;
-import it.unimi.dsi.fastutil.ints.*;
-import net.minecraft.resources.ResourceLocation;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.google.gson.JsonElement
+import com.google.gson.JsonObject
+import com.google.gson.JsonSyntaxException
+import io.github.colintimbarndt.chat_emotes.data.Emote
+import io.github.colintimbarndt.chat_emotes.data.EmoteData
+import io.github.colintimbarndt.chat_emotes.data.EmoteDataSerializer
+import io.github.colintimbarndt.chat_emotes.data.FontGenerator
+import io.github.colintimbarndt.chat_emotes.data.unicode.joiner.UnicodeJoiner
+import io.github.colintimbarndt.chat_emotes.data.unicode.pattern.UnicodePattern
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
+import it.unimi.dsi.fastutil.ints.IntRBTreeSet
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.util.GsonHelper
+import java.io.IOException
+import java.nio.file.Path
+import java.text.ParseException
+import java.util.*
+import java.util.function.Supplier
+import java.util.regex.Pattern
+import javax.imageio.ImageIO
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.text.ParseException;
-import java.util.*;
-import java.util.List;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.regex.Pattern;
-import java.util.zip.ZipFile;
+class UnicodeEmoteData private constructor(override val location: ResourceLocation) : EmoteData {
+    private val emotesMut: MutableSet<Emote> = HashSet()
+    private val emotesByUnicodeSequence: MutableMap<String, Emote> = TreeMap()
+    private val emotesByAlias: MutableMap<String, Emote> = HashMap()
+    private val emotesByEmoticon: MutableMap<String, Emote> = HashMap()
 
-import static net.minecraft.util.GsonHelper.*;
+    override val emotes: Set<Emote> get() = Collections.unmodifiableSet(emotesMut)
 
-public final class UnicodeEmoteData implements EmoteData {
-    public static final UnicodeEmoteDataSerializer SERIALIZER = new UnicodeEmoteDataSerializer();
+    override val aliases: Set<String> get() = Collections.unmodifiableSet(emotesByAlias.keys)
 
-    private final ResourceLocation location;
-    private final Set<Emote> emotes = new HashSet<>();
-    private final Map<String, Emote> emotesByUnicodeSequence = new TreeMap<>();
-    private final Map<String, Emote> emotesByAlias = new HashMap<>();
-    private final Map<String, Emote> emotesByEmoticon = new HashMap<>();
+    override val emoticons: Set<String> get() = emotesByEmoticon.keys
 
-    private UnicodeEmoteData(ResourceLocation location) {
-        this.location = location;
+    override fun emoteForUnicodeSequence(sequence: String): Emote? {
+        return emotesByUnicodeSequence[sequence]
     }
 
-    public @NotNull ResourceLocation getLocation() {
-        return location;
+    override fun emoteForAlias(alias: String): Emote? {
+        return emotesByAlias[alias]
     }
 
-    @Override
-    public @NotNull Set<Emote> getEmotes() {
-        return Collections.unmodifiableSet(emotes);
+    override fun emoteForEmoticon(emoticon: String): Emote? {
+        return emotesByEmoticon[emoticon]
     }
 
-    @Override
-    public @NotNull Set<String> getAliases() {
-        return emotesByAlias.keySet();
-    }
+    override val serializer = Serializer
 
-    @Override
-    public @NotNull Set<String> getEmoticons() {
-        return emotesByEmoticon.keySet();
-    }
-
-    @Override
-    public @Nullable Emote emoteForUnicodeSequence(@NotNull String sequence) {
-        return emotesByUnicodeSequence.get(sequence);
-    }
-
-    @Override
-    public @Nullable Emote emoteForAlias(@NotNull String alias) {
-        return emotesByAlias.get(alias);
-    }
-
-    @Override
-    public @Nullable Emote emoteForEmoticon(@NotNull String emoticon) {
-        return emotesByEmoticon.get(emoticon);
-    }
-
-    @Override
-    public @NotNull UnicodeEmoteDataSerializer getSerializer() {
-        return SERIALIZER;
-    }
-
-    @Override
-    public void generateFonts(@NotNull FontGenerator gen, @NotNull Path imageSources) throws IOException {
+    @Throws(IOException::class)
+    override fun generateFonts(gen: FontGenerator, imageSources: Path) {
         // TODO: optimize
-        final var fonts = new HashMap<ResourceLocation, FontGenerator.Font>(8);
-        try (final var images = new EmoteTextureArchive(imageSources.toFile())) {
-            for (Emote emote : emotes) {
-                final var texture = images.getTextureAsStream(emote.unicodeSequence());
-                if (texture != null) {
-                    final var img = ImageIO.read(texture);
-                    final var fontId = emote.font();
-                    final FontGenerator.Font font;
-                    if (fonts.containsKey(fontId)) {
-                        font = fonts.get(fontId);
-                    } else {
-                        font = gen.createFont(fontId, img.getWidth());
-                        fonts.put(fontId, font);
+        val fonts = HashMap<ResourceLocation, FontGenerator.Font>(8)
+        try {
+            EmoteTextureArchive(imageSources.toFile()).use { images ->
+                for (emote in emotesMut) {
+                    val seq = emote.unicodeSequence ?: continue
+                    val texture = images.getTextureAsStream(seq)
+                    if (texture != null) {
+                        val img = ImageIO.read(texture)
+                        val fontId = emote.font
+                        val font: FontGenerator.Font?
+                        if (fonts.containsKey(fontId)) {
+                            font = fonts[fontId]
+                        } else {
+                            font = gen.createFont(fontId, img.width)
+                            fonts[fontId] = font
+                        }
+                        font!!.addSprite(img, emote.character)
                     }
-                    font.addSprite(img, emote.character());
                 }
             }
         } finally {
-            for (FontGenerator.Font font : fonts.values()) {
-                font.close();
+            for (font in fonts.values) {
+                font.close()
             }
         }
     }
 
-    public static final class UnicodeEmoteDataSerializer implements EmoteDataSerializer<UnicodeEmoteData> {
-        private static final Pattern CODE_POINT_PATTERN = Pattern.compile(
-                "(?<min>[\\da-f]{1,6})(-(?<max>[\\da-f]{1,6}))?",
-                Pattern.CASE_INSENSITIVE
-        );
-        private static final String[] EMPTY_STRING_ARRAY = {};
-        private UnicodeEmoteDataSerializer() {}
-
-        @Override
-        public @NotNull UnicodeEmoteData read(
-                @NotNull ResourceLocation location,
-                final @NotNull JsonObject json,
-                final @Nullable Set<String> samples
-        ) throws JsonSyntaxException {
-            final var instance = new UnicodeEmoteData(location);
+    object Serializer : EmoteDataSerializer<UnicodeEmoteData> {
+        @Throws(JsonSyntaxException::class)
+        override fun read(
+            location: ResourceLocation,
+            json: JsonObject,
+            samples: Set<String>?
+        ): UnicodeEmoteData {
+            val instance = UnicodeEmoteData(location)
             // Maps an alias to a unicode sequence
-            final var allAliases = new HashMap<String, String>();
+            val allAliases = HashMap<String?, String>()
             // Maps a unicode sequence to aliases
-            final var emoteAliases = new TreeMap<String, String[]>();
+            val emoteAliases = TreeMap<String, Array<String>>()
             // Maps an unicode sequence to emoticons
-            final var emoticons = new HashMap<String, List<String>>();
-
-            final var deferredSymbols = new HashMap<String, UnicodePattern>();
-            final var symbols = getAsJsonObject(json, "symbols");
-            for (var entry : symbols.entrySet()) {
-                final var key = entry.getKey();
-                final var value = entry.getValue();
-                final var m = CODE_POINT_PATTERN.matcher(key);
+            val emoticons = HashMap<String, MutableList<String>>()
+            val deferredSymbols = HashMap<String, UnicodePattern>()
+            val symbols = GsonHelper.getAsJsonObject(json, "symbols")
+            for ((key1, value) in symbols.entrySet()) {
+                val m = CODE_POINT_PATTERN.matcher(key1)
                 if (m.matches()) {
                     // is a codepoint or range
-                    final int min = Integer.parseInt(m.group("min"), 16);
-                    final var maxStr = m.group("max");
+                    val min = m.group("min").toInt(16)
+                    val maxStr = m.group("max")
                     if (maxStr == null) {
                         // codepoint
-                        final var aliases = parseAliases(value, key);
-                        final var seq = Character.toString(min);
-                        for (String alias : aliases) {
-                            allAliases.put(alias, seq);
+                        val aliases = parseAliases(value, key1)
+                        val seq = Character.toString(min)
+                        for (alias in aliases) {
+                            allAliases[alias] = seq
                         }
-                        emoteAliases.put(seq, aliases);
-                        continue;
+                        emoteAliases[seq] = aliases
+                        continue
                     }
                     // range
-                    if (!value.isJsonArray()) {
-                        throw new JsonSyntaxException(
-                                "Expected symbols['" + key + "'] to be a JsonArray, was "
-                                        + getType(value)
-                        );
+                    if (!value.isJsonArray) {
+                        throw JsonSyntaxException(
+                            "Expected symbols['$key1'] to be a JsonArray, was "
+                                    + GsonHelper.getType(value)
+                        )
                     }
-                    final int max = Integer.parseInt(maxStr, 16);
-                    final var subArray = value.getAsJsonArray();
-                    int c = min;
-                    for (int i = 0; i < subArray.size(); i++) {
-                        final var subValue = subArray.get(i);
-                        if (isNumberValue(subValue)) {
-                            final int inc = subValue.getAsInt();
+                    val max = maxStr.toInt(16)
+                    val subArray = value.asJsonArray
+                    var c = min
+                    for (i in 0 until subArray.size()) {
+                        val subValue = subArray[i]
+                        if (GsonHelper.isNumberValue(subValue)) {
+                            val inc = subValue.asInt
                             if (inc < 1) {
-                                throw new JsonSyntaxException(
-                                        "Symbols skipped must be greater than 0 in symbols['" + key + "']"
-                                );
+                                throw JsonSyntaxException(
+                                    "Symbols skipped must be greater than 0 in symbols['$key1']"
+                                )
                             }
-                            c += inc;
-                            continue;
+                            c += inc
+                            continue
                         }
-                        final var aliases = parseAliases(subValue, key, i);
-                        final var seq = Character.toString(c);
-                        for (String alias : aliases) {
-                            allAliases.put(alias, seq);
+                        val aliases = parseAliases(subValue, key1, i)
+                        val seq = Character.toString(c)
+                        for (alias in aliases) {
+                            allAliases[alias] = seq
                         }
-                        emoteAliases.put(seq, aliases);
-                        c++;
+                        emoteAliases[seq] = aliases
+                        c++
                     }
                     if (c - 1 > max) {
-                        throw new JsonSyntaxException(
-                                "Symbols out of range in symbols['" + key + "']"
-                        );
+                        throw JsonSyntaxException(
+                            "Symbols out of range in symbols['$key1']"
+                        )
                     }
-                    continue;
+                    continue
                 } // end codepoint or range
                 // pattern
-                final UnicodePattern pattern;
-                try {
-                    pattern = UnicodePattern.parse(key);
-                } catch (ParseException ex) {
-                    throw new JsonSyntaxException(
-                            "Expected key '" + key + "' in symbols to be a code point (-range) or pattern",
-                            ex
-                    );
+                val pattern: UnicodePattern = try {
+                    UnicodePattern.parse(key1)
+                } catch (ex: ParseException) {
+                    throw JsonSyntaxException(
+                        "Expected key '$key1' in symbols to be a code point (-range) or pattern",
+                        ex
+                    )
                 }
-                final var wrapper = new Object() { boolean hasAllRefs = true; };
-                pattern.getNameReferences(ref -> wrapper.hasAllRefs &= allAliases.containsKey(ref) );
-                if (wrapper.hasAllRefs) {
-                    pattern.resolveNames(allAliases::get);
-                    resolvePatternEntry(key, pattern, value, samples, allAliases, emoteAliases);
+                val hasAllRefs = pattern.getNameReferences().all(allAliases::containsKey)
+                if (hasAllRefs) {
+                    pattern.resolveNames { allAliases[it]!! }
+                    resolvePatternEntry(key1, pattern, value, samples, allAliases, emoteAliases)
                 } else {
-                    deferredSymbols.put(key, pattern);
+                    deferredSymbols[key1] = pattern
                 }
             }
-            { // Resolve patterns
-                final var removableKeys = new HashSet<String>();
-                while (deferredSymbols.size() > 0) {
-                    removableKeys.clear();
-                    for (Map.Entry<String, UnicodePattern> entry : deferredSymbols.entrySet()) {
-                        final var pattern = entry.getValue();
-                        final var wrapper = new Object() { boolean hasAllRefs = true; };
-                        pattern.getNameReferences(ref -> wrapper.hasAllRefs &= allAliases.containsKey(ref) );
-                        if (wrapper.hasAllRefs) {
-                            final String key = entry.getKey();
-                            removableKeys.add(key);
-                            pattern.resolveNames(allAliases::get);
-                            resolvePatternEntry(key, pattern, symbols.get(key), samples, allAliases, emoteAliases);
+            run {
+                // Resolve patterns
+                val removableKeys = HashSet<String>()
+                while (deferredSymbols.size > 0) {
+                    removableKeys.clear()
+                    for ((key1, pattern) in deferredSymbols) {
+                        val hasAllRefs = pattern.getNameReferences().all(allAliases::containsKey)
+                        if (hasAllRefs) {
+                            removableKeys.add(key1)
+                            pattern.resolveNames { allAliases[it]!! }
+                            resolvePatternEntry(key1, pattern, symbols[key1], samples, allAliases, emoteAliases)
                         }
                     }
-                    if (removableKeys.size() == 0) {
-                        throw new JsonSyntaxException(
-                                "Undefined or circular references in symbol patterns: " +
-                                        String.join(", ", deferredSymbols.keySet())
-                        );
+                    if (removableKeys.size == 0) {
+                        throw JsonSyntaxException(
+                            "Undefined or circular references in symbol patterns: " +
+                                    java.lang.String.join(", ", deferredSymbols.keys)
+                        )
                     }
-                    for (String rem : removableKeys) {
-                        deferredSymbols.remove(rem);
+                    for (rem in removableKeys) {
+                        deferredSymbols.remove(rem)
                     }
                 }
             }
             // Emoticons
             if (json.has("emoticons")) {
-                final var emoticonsJson = getAsJsonObject(json, "emoticons");
-                for (Map.Entry<String, JsonElement> entry : emoticonsJson.entrySet()) {
-                    final var key = entry.getKey();
-                    final var emos = parseEmoticons(entry.getValue(), key);
-                    final var seq = allAliases.get(key);
-                    if (seq == null) {
-                        throw new JsonSyntaxException(
-                                "Key '" + key + "' in emoticons is not an emote alias"
-                        );
-                    }
-                    final var existing = emoticons.get(seq);
-                    if (existing != null) {
-                        existing.addAll(List.of(emos));
-                    } else {
-                        emoticons.put(seq, Arrays.asList(emos));
-                    }
+                val emoticonsJson = GsonHelper.getAsJsonObject(json, "emoticons")
+                for ((key, value) in emoticonsJson.entrySet()) {
+                    val emos = parseEmoticons(value, key).toMutableList()
+                    val seq = allAliases[key]
+                        ?: throw JsonSyntaxException(
+                            "Key '$key' in emoticons is not an emote alias"
+                        )
+                    val existing = emoticons[seq]!!
+                    existing.addAll(emos)
+                    emoticons[seq] = emos
                 }
             }
-            final var used = new IntRBTreeSet();
-            for (var entry : emoteAliases.entrySet()) {
-                final var seq = entry.getKey();
-                final var aliases = entry.getValue();
-                final var emot = emoticons.get(seq);
-                final var e = createEmote(
-                        location, used, seq, aliases, emot == null ? null : emot.toArray(EMPTY_STRING_ARRAY)
-                );
-
-                instance.emotes.add(e);
-                instance.emotesByUnicodeSequence.put(seq, e);
-                for (String alias : aliases) instance.emotesByAlias.put(alias, e);
-                for (String emoticon : e.emoticons()) instance.emotesByEmoticon.put(emoticon, e);
+            val used = IntRBTreeSet()
+            for ((seq, aliases) in emoteAliases) {
+                val emot = emoticons[seq]!!
+                val e = createEmote(
+                    location, used, seq, aliases, emot.toTypedArray()
+                )
+                instance.emotesMut.add(e)
+                instance.emotesByUnicodeSequence[seq] = e
+                for (alias in aliases) instance.emotesByAlias[alias] = e
+                for (emoticon in e.emoticons) instance.emotesByEmoticon[emoticon] = e
             }
-            return instance;
+            return instance
         }
 
-        private static @NotNull String @NotNull[] parseAliases(
-                final JsonElement json,
-                final String key
-        ) throws JsonSyntaxException {
-            return parseNames(json, () -> "symbols['" + key + "']");
-        }
-
-        private static @NotNull String @NotNull[] parseAliases(
-                final @NotNull JsonElement json,
-                final @NotNull String key,
-                final int subKey
-        ) throws JsonSyntaxException {
-            return parseNames(json, () -> "symbols['" + key + "'][" + subKey + "]");
-        }
-
-        private static @NotNull String @NotNull[] parseEmoticons(
-                final @NotNull JsonElement json,
-                final String key
-        ) throws JsonSyntaxException {
-            return parseNames(json, () -> "emoticons[" + key + "]");
-        }
-
-        private static @NotNull String @NotNull[] parseNames(
-                final JsonElement json,
-                final Supplier<String> path
-                ) throws JsonSyntaxException {
-            if (isStringValue(json)) {
-                return new String[] {json.getAsString()};
-            }
-            if (json.isJsonArray()) {
-                final var array = json.getAsJsonArray();
-                final var aliases = new String[array.size()];
-                for (int i = 0; i < aliases.length; i++) {
-                    final var alias = array.get(i);
-                    if (!isStringValue(alias)) {
-                        throw new JsonSyntaxException(
-                                "Expected " + path.get() +
-                                        "[" + i + "] to be a string, was " +
-                                        getType(alias)
-                        );
-                    }
-                    aliases[i] = alias.getAsString();
-                }
-                return aliases;
-            }
-            throw new JsonSyntaxException(
-                    "Expected " + path.get() +
-                            " to be a string or JsonArray, was " +
-                            getType(json)
-            );
-        }
-
-        private void resolvePatternEntry(
-                final @NotNull String key,
-                final @NotNull UnicodePattern pattern,
-                final @NotNull JsonElement json,
-                final @Nullable Iterable<String> samples,
-                final @NotNull Map<String, String> allAliases,
-                final @NotNull Map<String, String[]> emoteAliases
-        ) throws JsonSyntaxException {
+        @Throws(JsonSyntaxException::class)
+        private fun resolvePatternEntry(
+            key: String,
+            pattern: UnicodePattern,
+            json: JsonElement,
+            samples: Iterable<String>?,
+            allAliases: MutableMap<String?, String>,
+            emoteAliases: MutableMap<String, Array<String>>
+        ) {
             // TODO: Optimize for single match
             if (samples == null) {
-                throw new JsonSyntaxException(
-                        "Patterns require a list of samples"
-                );
+                throw JsonSyntaxException(
+                    "Patterns require a list of samples"
+                )
             }
-            final UnicodeJoiner[] joiners;
+            val joiners: Array<UnicodeJoiner?>
             try {
-                if (json.isJsonArray()) {
-                    final var array = json.getAsJsonArray();
-                    joiners = new UnicodeJoiner[array.size()];
-                    for (int i = 0; i < joiners.length; i++) {
-                        final var entry = array.get(i);
-                        if (isStringValue(entry)) {
-                            final var j = UnicodeJoiner.parse(entry.getAsString());
-                            joiners[i] = j;
+                if (json.isJsonArray) {
+                    val array = json.asJsonArray
+                    joiners = arrayOfNulls(array.size())
+                    for (i in joiners.indices) {
+                        val entry = array[i]
+                        if (GsonHelper.isStringValue(entry)) {
+                            val j = UnicodeJoiner.parse(entry.asString)
+                            joiners[i] = j
                             if (!j.isCompatibleWith(pattern)) {
-                                throw new JsonSyntaxException(
-                                        "Joiner '" + json.getAsString() + "' is incompatible with pattern '" + key + "'"
-                                );
+                                throw JsonSyntaxException(
+                                    "Joiner '" + json.asString + "' is incompatible with pattern '" + key + "'"
+                                )
                             }
                         } else {
-                            throw new JsonSyntaxException(
-                                    "Expected symbols['" + key + "'][" + i + "] to be a string, was " +
-                                            getType(entry)
-                            );
+                            throw JsonSyntaxException(
+                                "Expected symbols['" + key + "'][" + i + "] to be a string, was " +
+                                        GsonHelper.getType(entry)
+                            )
                         }
                     }
-                } else if (isStringValue(json)) {
-                    joiners = new UnicodeJoiner[1];
-                    final var j = UnicodeJoiner.parse(json.getAsString());
-                    joiners[0] = j;
+                } else if (GsonHelper.isStringValue(json)) {
+                    joiners = arrayOfNulls(1)
+                    val j = UnicodeJoiner.parse(json.asString)
+                    joiners[0] = j
                     if (!j.isCompatibleWith(pattern)) {
-                        throw new JsonSyntaxException(
-                                "Joiner '" + json.getAsString() + "' is incompatible with pattern '" + key + "'"
-                        );
+                        throw JsonSyntaxException(
+                            "Joiner '" + json.asString + "' is incompatible with pattern '" + key + "'"
+                        )
                     }
                 } else {
-                    throw new JsonSyntaxException(
-                            "Expected symbols['" + key + "'] to be a string or JsonArray, was " +
-                                    getType(json)
-                    );
+                    throw JsonSyntaxException(
+                        "Expected symbols['" + key + "'] to be a string or JsonArray, was " +
+                                GsonHelper.getType(json)
+                    )
                 }
-            } catch(ParseException ex) {
-                throw new JsonSyntaxException(
-                        "Invalid unicode joiner in symbols['" + key + "']",
-                        ex
-                );
+            } catch (ex: ParseException) {
+                throw JsonSyntaxException(
+                    "Invalid unicode joiner in symbols['$key']",
+                    ex
+                )
             }
             // Find matches
-            for (final var sample : samples) {
-                final var result = pattern.apply(sample);
+            for (sample in samples) {
+                val result = pattern.invoke(sample)
                 if (result != null) {
-                    final String[] aliases = new String[joiners.length];
-                    for (int i = 0; i < joiners.length; i++) {
-                        aliases[i] = joiners[i].evaluate(result);
+                    val aliases = arrayOfNulls<String>(joiners.size)
+                    for (i in joiners.indices) {
+                        aliases[i] = joiners[i]!!.evaluate(result)
                     }
-                    for (String alias : aliases) {
-                        allAliases.put(alias, sample);
+                    for (alias in aliases) {
+                        allAliases[alias] = sample
                     }
-                    emoteAliases.put(sample, aliases);
+                    emoteAliases[sample] = aliases.requireNoNulls()
                 }
             }
         }
 
-        private static final Int2ObjectMap<ResourceLocation> FONTS = new Int2ObjectOpenHashMap<>(8);
-
-        private @NotNull Emote createEmote(
-                final @NotNull ResourceLocation base,
-                final @NotNull IntRBTreeSet used,
-                final @NotNull String seq,
-                final @NotNull String @NotNull[] aliases,
-                @NotNull String @Nullable[] emoticons
-        ) {
-            if (seq.length() == 0) throw new IllegalArgumentException("Empty emote unicode sequence");
-            int cp = seq.codePointAt(0);
+        private fun createEmote(
+            base: ResourceLocation,
+            used: IntRBTreeSet,
+            seq: String,
+            aliases: Array<String>,
+            emoticons: Array<String> = EMPTY_STRING_ARRAY
+        ): Emote {
+            require(seq.isNotEmpty()) { "Empty emote unicode sequence" }
+            var cp = seq.codePointAt(0)
             if (used.contains(cp)) {
-                cp += 100 << 16;
-                final var usedIt = used.tailSet(cp).iterator();
-                while (usedIt.hasNext() && usedIt.nextInt() == cp) cp++;
-                if (used.contains(cp)) throw new AssertionError();
+                cp += 100 shl 16
+                val usedIt = used.tailSet(cp).iterator()
+                while (usedIt.hasNext() && usedIt.nextInt() == cp) cp++
+                if (used.contains(cp)) throw AssertionError()
             }
-            used.add(cp);
-            final var font = getFont(base, cp >> 16);
-            final char ch = (char) (cp & 0xffff);
-            if (emoticons == null) emoticons = EMPTY_STRING_ARRAY;
-            return new Emote(font, ch, aliases, emoticons, seq);
+            used.add(cp)
+            val font = getFont(base, cp shr 16)
+            val ch = (cp and 0xffff).toChar()
+            return Emote(font, ch, aliases, emoticons, seq)
         }
 
-        private @NotNull ResourceLocation getFont(ResourceLocation base, int i) {
-            final var existing = FONTS.get(i);
-            if (existing != null) return existing;
-            final var rl = new ResourceLocation(base.getNamespace(), base.getPath() + i);
-            FONTS.put(i, rl);
-            return rl;
+        private fun getFont(base: ResourceLocation, i: Int): ResourceLocation {
+            val existing = FONTS[i]
+            if (existing != null) return existing
+            val rl = ResourceLocation(base.namespace, base.path + i)
+            FONTS.put(i, rl)
+            return rl
         }
+
+        private val CODE_POINT_PATTERN = Pattern.compile(
+            "(?<min>[\\da-f]{1,6})(-(?<max>[\\da-f]{1,6}))?",
+            Pattern.CASE_INSENSITIVE
+        )
+        private val EMPTY_STRING_ARRAY = arrayOf<String>()
+        @Throws(JsonSyntaxException::class)
+        private fun parseAliases(
+            json: JsonElement,
+            key: String
+        ): Array<String> {
+            return parseNames(json) { "symbols['$key']" }
+        }
+
+        @Throws(JsonSyntaxException::class)
+        private fun parseAliases(
+            json: JsonElement,
+            key: String,
+            subKey: Int
+        ): Array<String> {
+            return parseNames(json) { "symbols['$key'][$subKey]" }
+        }
+
+        @Throws(JsonSyntaxException::class)
+        private fun parseEmoticons(
+            json: JsonElement,
+            key: String
+        ): Array<String> {
+            return parseNames(json) { "emoticons[$key]" }
+        }
+
+        @Throws(JsonSyntaxException::class)
+        private fun parseNames(
+            json: JsonElement,
+            path: Supplier<String>
+        ): Array<String> {
+            if (GsonHelper.isStringValue(json)) {
+                return arrayOf(json.asString)
+            }
+            if (json.isJsonArray) {
+                val array = json.asJsonArray
+                val aliases = arrayOfNulls<String>(array.size())
+                for (i in aliases.indices) {
+                    val alias = array[i]
+                    if (!GsonHelper.isStringValue(alias)) {
+                        throw JsonSyntaxException(
+                            "Expected " + path.get() +
+                                    "[" + i + "] to be a string, was " +
+                                    GsonHelper.getType(alias)
+                        )
+                    }
+                    aliases[i] = alias.asString
+                }
+                return aliases.requireNoNulls()
+            }
+            throw JsonSyntaxException(
+                "Expected " + path.get() +
+                        " to be a string or JsonArray, was " +
+                        GsonHelper.getType(json)
+            )
+        }
+
+        private val FONTS: Int2ObjectMap<ResourceLocation> = Int2ObjectOpenHashMap(8)
     }
 }

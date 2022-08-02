@@ -20,10 +20,16 @@
   "environment": "*",
   "entrypoints": {
     "server": [
-      "io.github.colintimbarndt.chat_emotes.ChatEmotesMod"
+      {
+        "adapter": "kotlin",
+        "value": "io.github.colintimbarndt.chat_emotes.ChatEmotesMod"
+      }
     ],
     "client": [
-      "io.github.colintimbarndt.chat_emotes.ChatEmotesMod"
+      {
+        "adapter": "kotlin",
+        "value": "io.github.colintimbarndt.chat_emotes.ChatEmotesMod"
+      }
     ]
   },
   "mixins": [
@@ -34,7 +40,8 @@
     "fabricloader": ">=0.14.6",
     "fabric": "*",
     "minecraft": "~1.19",
-    "java": ">=17"
+    "java": ">=17",
+    "fabric-language-kotlin": ">=1.8.2+kotlin.1.7.10"
   },
   "suggests": {}
 }

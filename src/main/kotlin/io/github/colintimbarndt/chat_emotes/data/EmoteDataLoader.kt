@@ -1,116 +1,118 @@
-package io.github.colintimbarndt.chat_emotes.data;
+package io.github.colintimbarndt.chat_emotes.data
 
-import com.google.gson.*;
-import io.github.colintimbarndt.chat_emotes.util.BomAwareReader;
-import net.fabricmc.fabric.api.resource.SimpleResourceReloadListener;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.resources.Resource;
-import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.util.profiling.ProfilerFiller;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.UnmodifiableView;
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonIOException
+import com.google.gson.JsonObject
+import com.google.gson.JsonSyntaxException
+import io.github.colintimbarndt.chat_emotes.ChatEmotesMod.Companion.EMOTE_DATA_SERIALIZER
+import io.github.colintimbarndt.chat_emotes.ChatEmotesMod.Companion.LOGGER
+import io.github.colintimbarndt.chat_emotes.ChatEmotesMod.Companion.MOD_ID
+import io.github.colintimbarndt.chat_emotes.util.BomAwareReader.createBuffered
+import net.fabricmc.fabric.api.resource.SimpleResourceReloadListener
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.server.packs.resources.Resource
+import net.minecraft.server.packs.resources.ResourceManager
+import net.minecraft.util.profiling.ProfilerFiller
+import java.io.IOException
+import java.util.*
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Executor
 
-import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
+class EmoteDataLoader : SimpleResourceReloadListener<List<EmoteData>> {
+    var loadedEmoteData: List<EmoteData> = emptyList()
+        private set
 
-import static io.github.colintimbarndt.chat_emotes.ChatEmotesMod.*;
-
-public final class EmoteDataLoader implements SimpleResourceReloadListener<List<EmoteData>> {
-    private static final ResourceLocation ID = new ResourceLocation(MOD_ID, "emotes");
-    private static final Gson GSON = new GsonBuilder()
-            .registerTypeAdapter(ResourceLocation.class, new ResourceLocation.Serializer())
-            .create();
-    private @UnmodifiableView List<EmoteData> loadedEmoteData = Collections.emptyList();
-
-    public @UnmodifiableView List<EmoteData> getLoadedEmoteData() {
-        return loadedEmoteData;
+    override fun getFabricId(): ResourceLocation {
+        return ID
     }
 
-    @Override
-    public ResourceLocation getFabricId() {
-        return ID;
-    }
-
-    @Override
-    public CompletableFuture<List<EmoteData>> load(
-            @NotNull ResourceManager manager,
-            ProfilerFiller profiler,
-            Executor executor
-    ) {
-        final var resources = manager.listResources("emote", loc -> loc.getPath().endsWith(".json"));
-        final var samples = manager.listResources("emote", loc -> loc.getPath().endsWith(".txt"));
-        final var dataList = new ArrayList<EmoteData>(resources.size());
-        for (var entry : resources.entrySet()) {
-            final var id = entry.getKey();
+    override fun load(
+        manager: ResourceManager,
+        profiler: ProfilerFiller,
+        executor: Executor
+    ): CompletableFuture<List<EmoteData>> {
+        val resources = manager.listResources("emote") { it.path.endsWith(".json") }
+        val samples = manager.listResources("emote") { it.path.endsWith(".txt") }
+        val dataList = ArrayList<EmoteData>(resources.size)
+        for ((id, value) in resources) {
             try {
-                final var json = GSON.fromJson(entry.getValue().openAsReader(), JsonObject.class);
-                final var type = GSON.fromJson(json.get("type"), ResourceLocation.class);
-                final var serializer = EMOTE_DATA_SERIALIZER.get(type);
+                val json = GSON.fromJson(value.openAsReader(), JsonObject::class.java)
+                val type = GSON.fromJson(json["type"], ResourceLocation::class.java)
+                val serializer = EMOTE_DATA_SERIALIZER[type]
                 if (serializer == null) {
-                    LOGGER.warn("Unknown emote data type {}", type);
-                    continue;
+                    LOGGER.warn("Unknown emote data type {}", type)
+                    continue
                 }
-                final Resource samplesResource;
-                final ResourceLocation samplesResourceLocation;
-                {
-                    final String path = id.getPath();
-                    final var loc = new ResourceLocation(
-                            id.getNamespace(),
-                            path.substring(0, path.length() - 5) + ".txt"
-                    );
-                    samplesResource = samples.get(loc);
-                    samplesResourceLocation = loc;
+                val samplesResource: Resource?
+                val samplesResourceLocation: ResourceLocation
+                run {
+                    val path = id.path
+                    val loc = ResourceLocation(
+                        id.namespace,
+                        path.substring(0, path.length - 5) + ".txt"
+                    )
+                    samplesResource = samples[loc]
+                    samplesResourceLocation = loc
                 }
-                Set<String> sampleStrings = null;
+                var sampleStrings: Set<String>? = null
                 if (samplesResource != null) {
                     try {
-                        sampleStrings = readSamples(samplesResource);
-                    } catch (IOException ex) {
-                        LOGGER.error("Unable to load resource {}", samplesResourceLocation, ex);
+                        sampleStrings = readSamples(samplesResource)
+                    } catch (ex: IOException) {
+                        LOGGER.error("Unable to load resource {}", samplesResourceLocation, ex)
                     }
                 }
-                final ResourceLocation emoteId;
-                {
-                    final String path = id.getPath();
-                    emoteId = new ResourceLocation(
-                            id.getNamespace(),
-                            path.substring(6, path.length() - 5)
-                    );
+                val emoteId: ResourceLocation
+                run {
+                    val path = id.path
+                    emoteId = ResourceLocation(
+                        id.namespace,
+                        path.substring(6, path.length - 5)
+                    )
                 }
-                final var eData = serializer.read(emoteId, json, sampleStrings);
-                dataList.add(eData);
-            } catch (IOException | JsonIOException | JsonSyntaxException ex) {
-                LOGGER.error("Unable to load resource {}", id, ex);
+                val eData = serializer.read(emoteId, json, sampleStrings)
+                dataList.add(eData)
+            } catch (ex: IOException) {
+                LOGGER.error("Unable to load resource {}", id, ex)
+            } catch (ex: JsonIOException) {
+                LOGGER.error("Unable to load resource {}", id, ex)
+            } catch (ex: JsonSyntaxException) {
+                LOGGER.error("Unable to load resource {}", id, ex)
             }
         }
-        return CompletableFuture.completedFuture(dataList);
+        return CompletableFuture.completedFuture(dataList)
     }
 
-    @Override
-    public CompletableFuture<Void> apply(
-            List<EmoteData> data,
-            ResourceManager manager,
-            ProfilerFiller profiler,
-            Executor executor
-    ) {
-        loadedEmoteData = Collections.unmodifiableList(data);
-        LOGGER.info("Loaded {} emotes", data.stream().mapToInt(d -> d.getEmotes().size()).sum());
-        return CompletableFuture.completedFuture(null);
+    override fun apply(
+        data: List<EmoteData>,
+        manager: ResourceManager,
+        profiler: ProfilerFiller,
+        executor: Executor
+    ): CompletableFuture<Void> {
+        loadedEmoteData = Collections.unmodifiableList(data)
+        LOGGER.info("Loaded {} emotes", data.stream().mapToInt { d: EmoteData -> d.emotes.size }.sum())
+        return CompletableFuture.completedFuture(null)
     }
 
-    private @NotNull @UnmodifiableView Set<String> readSamples(Resource resource) throws IOException {
-        final var results = new HashSet<String>();
-        try (final var stream = BomAwareReader.createBuffered(resource.open(), 64)) {
-            final var lines = stream.lines().iterator();
+    @Throws(IOException::class)
+    private fun readSamples(resource: Resource): Set<String> {
+        val results = HashSet<String>()
+        createBuffered(resource.open(), 64).use { stream ->
+            val lines = stream.lines().iterator()
             while (lines.hasNext()) {
-                final var line = lines.next();
-                if (!line.isEmpty()) {
-                    results.add(line);
+                val line = lines.next()
+                if (line.isNotEmpty()) {
+                    results.add(line)
                 }
             }
         }
-        return Collections.unmodifiableSet(results);
+        return Collections.unmodifiableSet(results)
+    }
+
+    companion object {
+        private val ID = ResourceLocation(MOD_ID, "emotes")
+        private val GSON = GsonBuilder()
+            .registerTypeAdapter(ResourceLocation::class.java, ResourceLocation.Serializer())
+            .create()
     }
 }

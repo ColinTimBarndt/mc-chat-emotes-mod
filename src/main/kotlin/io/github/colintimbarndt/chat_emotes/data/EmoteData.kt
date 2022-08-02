@@ -1,34 +1,27 @@
-package io.github.colintimbarndt.chat_emotes.data;
+package io.github.colintimbarndt.chat_emotes.data
 
-import net.minecraft.resources.ResourceLocation;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.resources.ResourceLocation
+import java.io.IOException
+import java.nio.file.Path
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.*;
-
-public interface EmoteData {
-    @NotNull ResourceLocation getLocation();
-    @NotNull Set<Emote> getEmotes();
+interface EmoteData {
+    val location: ResourceLocation
+    val emotes: Set<Emote>
 
     /**
-     * @return {@link Set} of all aliases this data covers
+     * @return [Set] of all aliases this data covers
      */
-    @NotNull Set<String> getAliases();
+    val aliases: Set<String>
 
     /**
-     * @return {@link Set} of all emoticons this data covers
+     * @return [Set] of all emoticons this data covers
      */
-    @NotNull Set<String> getEmoticons();
+    val emoticons: Set<String>
+    fun emoteForUnicodeSequence(sequence: String): Emote?
+    fun emoteForAlias(alias: String): Emote?
+    fun emoteForEmoticon(emoticon: String): Emote?
+    val serializer: EmoteDataSerializer<*>
 
-    @Nullable Emote emoteForUnicodeSequence(@NotNull String sequence);
-
-    @Nullable Emote emoteForAlias(@NotNull String alias);
-
-    @Nullable Emote emoteForEmoticon(@NotNull String emoticon);
-
-    @NotNull EmoteDataSerializer<?> getSerializer();
-
-    void generateFonts(@NotNull FontGenerator gen, @NotNull Path imageSources) throws IOException;
+    @Throws(IOException::class)
+    fun generateFonts(gen: FontGenerator, imageSources: Path)
 }

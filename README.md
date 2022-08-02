@@ -13,6 +13,10 @@ Currently, the mod ships with support for all Emojis and aliases compatible with
 
 As I am still developing this mod, there will be breaking changes in the configuration.
 
+[<img src="https://i.imgur.com/c1DH9VL.png" width="200"/>][fabric-lang-kotlin]
+
+[fabric-lang-kotlin]: https://www.curseforge.com/minecraft/mc-mods/fabric-language-kotlin
+
 ## Client Mod
 
 The client mod will add GUI elements to the chat that make picking an emoji easier.
