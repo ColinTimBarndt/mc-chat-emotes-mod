@@ -100,7 +100,7 @@ public final class EmoteDataLoader implements SimpleResourceReloadListener<List<
         return CompletableFuture.completedFuture(null);
     }
 
-    private @NotNull @UnmodifiableView Set<String> readSamples(Resource resource) throws IOException {
+    private @NotNull Set<String> readSamples(Resource resource) throws IOException {
         final var results = new HashSet<String>();
         try (final var stream = BomAwareReader.createBuffered(resource.open(), 64)) {
             final var lines = stream.lines().iterator();
@@ -111,6 +111,6 @@ public final class EmoteDataLoader implements SimpleResourceReloadListener<List<
                 }
             }
         }
-        return Collections.unmodifiableSet(results);
+        return results;
     }
 }

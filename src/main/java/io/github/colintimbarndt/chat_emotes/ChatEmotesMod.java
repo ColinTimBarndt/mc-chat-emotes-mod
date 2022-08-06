@@ -11,6 +11,7 @@ import io.github.colintimbarndt.chat_emotes.data.unicode.UnicodeEmoteData;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.event.registry.FabricRegistryBuilder;
 import net.fabricmc.fabric.api.message.v1.ServerMessageDecoratorEvent;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.loader.api.FabricLoader;
@@ -40,13 +41,13 @@ public class ChatEmotesMod implements DedicatedServerModInitializer, ClientModIn
 	private static ChatEmotesConfig config = null;
 	private static Path configDir = null;
 	private static ModMetadata modMetadata = null;
-	public static final ResourceKey<Registry<EmoteDataSerializer<?>>> EMOTE_DATA_SERIALIZER_REGISTRY;
 	public static final Registry<EmoteDataSerializer<?>> EMOTE_DATA_SERIALIZER;
 	public static final EmoteDataLoader EMOTE_DATA_LOADER = new EmoteDataLoader();
 
 	static {
-		EMOTE_DATA_SERIALIZER_REGISTRY = createRegistryKey(new ResourceLocation(MOD_ID, "emote_data_serializer"));
-		EMOTE_DATA_SERIALIZER = new MappedRegistry<>(EMOTE_DATA_SERIALIZER_REGISTRY, Lifecycle.experimental(), null);
+		EMOTE_DATA_SERIALIZER = FabricRegistryBuilder.<EmoteDataSerializer<?>>createSimple(null,
+				new ResourceLocation(MOD_ID, "emote_data_serializer")
+		).buildAndRegister();
 		Registry.register(EMOTE_DATA_SERIALIZER, new ResourceLocation(MOD_ID, "unicode"), UnicodeEmoteData.SERIALIZER);
 	}
 
