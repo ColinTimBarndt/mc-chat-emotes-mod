@@ -872,7 +872,7 @@
       "money_with_wings",
       "chart",
       "seat",
-      "computer",
+      ["computer", "laptop"],
       "briefcase",
       "minidisc",
       "floppy_disk",
@@ -1588,7 +1588,7 @@
     ],
     "1F9D0-1F9DF": [
       "face_with_monocle",
-      "adult",
+      ["adult", "person"],
       "child",
       "older_adult",
       "bearded_person",
