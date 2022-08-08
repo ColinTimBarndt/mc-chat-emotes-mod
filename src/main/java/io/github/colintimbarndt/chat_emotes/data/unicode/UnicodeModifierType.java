@@ -7,20 +7,19 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.regex.Pattern;
 
-public final class UnicodeModifierType {
-    public final String name;
+public final class UnicodeModifierType implements Comparable<UnicodeModifierType> {
+    public final @NotNull String name;
     public final int priority;
-    private @Nullable String postfix = null;
+    public final int defaultChoice;
+    public final @NotNull String format;
     private @NotNull Modifier[] values = null;
     private @NotNull Pattern @Nullable[] replace;
 
-    public UnicodeModifierType(String name, int priority) {
+    public UnicodeModifierType(@NotNull String name, int priority, int defaultChoice, @NotNull String format) {
         this.name = name;
         this.priority = priority;
-    }
-
-    public String postfix() {
-        return postfix;
+        this.defaultChoice = defaultChoice;
+        this.format = format;
     }
 
     public Modifier[] values() {
@@ -31,12 +30,17 @@ public final class UnicodeModifierType {
         return replace == null ? null : replace.clone();
     }
 
-    @Contract("_ -> new")
-    public static @NotNull Builder build(String name) {
-        return new Builder(name);
+    @Contract("_, _, _ -> new")
+    public static @NotNull Builder build(@NotNull String name, int defaultChoice, @NotNull String format) {
+        return new Builder(name, defaultChoice, format);
     }
 
-    public final class Modifier {
+    @Override
+    public int compareTo(@NotNull UnicodeModifierType other) {
+        return Integer.compare(priority, other.priority);
+    }
+
+    public final class Modifier implements Comparable<Modifier> {
         public final int ordinal;
         public final @NotNull String sequence;
         private final @NotNull String @NotNull[] names;
@@ -54,6 +58,19 @@ public final class UnicodeModifierType {
             return names.clone();
         }
 
+        public String getModifiedName(String alias) {
+            if (replace != null) {
+                for (int j = 0; j < replace.length; j++) {
+                    final Pattern pattern = replace[j];
+                    final var matcher = pattern.matcher(alias);
+                    if (matcher.find()) {
+                        return matcher.replaceFirst(names[j]);
+                    }
+                }
+            }
+            return format.formatted(alias, names[defaultChoice]);
+        }
+
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
@@ -69,6 +86,11 @@ public final class UnicodeModifierType {
         public int hashCode() {
             return ordinal + 15 * getType().hashCode();
         }
+
+        @Override
+        public int compareTo(@NotNull UnicodeModifierType.Modifier other) {
+            return UnicodeModifierType.this.compareTo(other.getType());
+        }
     }
 
     public static final class Builder {
@@ -83,8 +105,8 @@ public final class UnicodeModifierType {
         private int priority = 0;
         private boolean isBuilt = false;
 
-        private Builder(String name) {
-            this.type = new UnicodeModifierType(name, priority);
+        private Builder(@NotNull String name, int defaultChoice, @NotNull String format) {
+            this.type = new UnicodeModifierType(name, priority, defaultChoice, format);
         }
 
         public UnicodeModifierType create() {
@@ -107,13 +129,6 @@ public final class UnicodeModifierType {
 
         public Builder priority(int prio) {
             priority = prio;
-            return this;
-        }
-
-        public Builder postfix(String post) {
-            if (isBuilt)
-                throw new IllegalStateException("already built");
-            type.postfix = Objects.requireNonNull(post);
             return this;
         }
 

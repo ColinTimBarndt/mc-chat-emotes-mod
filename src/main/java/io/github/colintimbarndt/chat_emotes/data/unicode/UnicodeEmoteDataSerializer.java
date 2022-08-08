@@ -183,8 +183,7 @@ public final class UnicodeEmoteDataSerializer implements EmoteDataSerializer<Uni
 
             instance.emotes.add(e);
             instance.emotesByUnicodeSequence.put(seq, e);
-            final var modEmote = new UnicodeEmoteData.ModifiedEmote(e);
-            for (String alias : aliases) instance.emotesByAlias.put(alias, modEmote);
+            for (String alias : aliases) instance.emotesByAlias.put(alias, e);
             for (String emoticon : e.emoticons()) instance.emotesByEmoticon.put(emoticon, e);
         }
         // Modifiers
@@ -196,7 +195,6 @@ public final class UnicodeEmoteDataSerializer implements EmoteDataSerializer<Uni
             }
             final var modifiersJson = getAsJsonObject(json, "modifiers");
             final var modifiers = new ArrayList<UnicodeModifierType>(modifiersJson.size());
-            final var modifierValues = new TreeMap<String, UnicodeModifierType.Modifier>();
             // Parse
             for (final Map.Entry<String, JsonElement> entry : modifiersJson.entrySet()) {
                 final var name = entry.getKey();
@@ -215,7 +213,26 @@ public final class UnicodeEmoteDataSerializer implements EmoteDataSerializer<Uni
                     );
                 }
                 final var valuesJson = modifierJson.getAsJsonObject("values");
-                final var builder = UnicodeModifierType.build(name);
+                if (!isStringValue(modifierJson, "format")) {
+                    throw new JsonSyntaxException(
+                            "Expected modifiers['" + name + "'].format to be a string, got " +
+                                    getType(modifierJson.get("format"))
+                    );
+                }
+                final String formatString = getAsString(modifierJson, "format");
+
+                int defaultValue = 0;
+                if (isNumberValue(modifierJson, "default")) {
+                    defaultValue = getAsInt(modifierJson, "default");
+                } else if (modifierJson.has("replace")) {
+                    throw new JsonSyntaxException(
+                            "Expected modifiers['" + name + "'].option to be a number, got "
+                                    + getType(modifierJson.get("option"))
+                                    + "(required because 'replace' is specified)"
+                    );
+                }
+
+                final var builder = UnicodeModifierType.build(name, defaultValue, formatString);
                 if (modifierJson.has("priority")) {
                     final var prioJson = modifierJson.get("priority");
                     if (!isNumberValue(prioJson)) {
@@ -225,17 +242,6 @@ public final class UnicodeEmoteDataSerializer implements EmoteDataSerializer<Uni
                         );
                     }
                     builder.priority(prioJson.getAsInt());
-                }
-                if (modifierJson.has("postfix")) {
-                    final var postfixJson = modifierJson.get("postfix");
-                    if (isStringValue(postfixJson)) {
-                        builder.postfix(postfixJson.getAsString());
-                    } else {
-                        throw new JsonSyntaxException(
-                                "Expected modifiers['" + name + "'].postfix to be a string, got " +
-                                        getType(postfixJson)
-                        );
-                    }
                 }
                 final int replaceLen;
                 if (modifierJson.has("replace")) {
@@ -282,7 +288,7 @@ public final class UnicodeEmoteDataSerializer implements EmoteDataSerializer<Uni
                     );
                     for (int i = 0; i < names.length; i++) {
                         final var mName = names[i];
-                        if (builder.isNameUsed(mName) || modifierValues.containsKey(mName)) {
+                        if (builder.isNameUsed(mName)) {
                             throw new JsonSyntaxException(
                                     "Value modifiers['" + name + "'].values['" + key + "'][" + i + "] ('" +
                                             names[i] + "') is not unique in this modifier"
@@ -296,12 +302,20 @@ public final class UnicodeEmoteDataSerializer implements EmoteDataSerializer<Uni
                         );
                     }
                     builder.addVariant(seq.toString(), names);
+                    if (defaultValue >= names.length) {
+                        throw new JsonSyntaxException(
+                                "Value modifiers['" + name + "'].values['" + key + "'].names does not have enough elements"
+                        );
+                    }
                 }
                 final var mod = builder.create();
-                for (UnicodeModifierType.Modifier value : mod.values()) {
-                    modifierValues.put(value.sequence, value);
-                }
                 modifiers.add(mod);
+            }
+            final var modifierValues = new TreeMap<String, UnicodeModifierType.Modifier>();
+            for (UnicodeModifierType modifier : modifiers) {
+                for (UnicodeModifierType.Modifier modValue : modifier.values()) {
+                    modifierValues.put(modValue.sequence, modValue);
+                }
             }
             // Apply
             for (String sample : samples) {
@@ -339,6 +353,7 @@ public final class UnicodeEmoteDataSerializer implements EmoteDataSerializer<Uni
                     }
                 } while (i != Integer.MAX_VALUE);
                 sb.append(sample, clip, sample.length());
+                mods.sort(null); // Sort grouped by type
                 // Add modified emote
                 final Emote baseEmote;
                 {
@@ -354,21 +369,10 @@ public final class UnicodeEmoteDataSerializer implements EmoteDataSerializer<Uni
                     final var aliasArray = new ArrayList<String>(baseEmote.aliases().length);
                     // transform aliases
                     for (String alias : baseEmote.aliases()) {
-                        boolean modified = false;
                         for (UnicodeModifierType.Modifier m : mods) {
-                            final var replace = m.getType().replace();
-                            if (replace == null) continue;
-                            for (int j = 0; j < replace.length; j++) {
-                                final Pattern pattern = replace[j];
-                                final var matcher = pattern.matcher(alias);
-                                if (matcher.find()) {
-                                    alias = matcher.replaceFirst(m.names()[j]);
-                                    modified = true;
-                                    break;
-                                }
-                            }
+                            alias = m.getModifiedName(alias);
                         }
-                        if (modified) aliasArray.add(alias);
+                        aliasArray.add(alias);
                     }
                     final var newAliases = aliasArray.isEmpty()
                             ? baseEmote.aliases()
@@ -378,16 +382,8 @@ public final class UnicodeEmoteDataSerializer implements EmoteDataSerializer<Uni
                     );
 
                     instance.emotes.add(e);
-                    if (!aliasArray.isEmpty()) {
-                        final var modEmote = new UnicodeEmoteData.ModifiedEmote(e);
-                        for (var alias : aliasArray) instance.emotesByAlias.put(alias, modEmote);
-                    }
+                    for (var alias : aliasArray) instance.emotesByAlias.put(alias, e);
                     instance.emotesByUnicodeSequence.put(sample, e);
-                    if (baseEmote.aliases().length > 0) {
-                        final var modEmote = instance.emotesByAlias.get(baseEmote.aliases()[0]);
-                        final var key = new UnicodeEmoteData.Modifiers(mods.toArray(new UnicodeModifierType.Modifier[0]));
-                        modEmote.modifications().put(key, e);
-                    }
                 }
             }
         }

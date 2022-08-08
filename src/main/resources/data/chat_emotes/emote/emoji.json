@@ -1807,7 +1807,7 @@
   "modifiers": {
     "skin": {
       "priority": -1,
-      "suffix": "_tone%s",
+      "format": "%s_tone%s",
       "values": {
         "1F3FB": "1",
         "1F3FC": "2",
@@ -1818,7 +1818,7 @@
     },
     "hair": {
       "priority": 1,
-      "suffix": "_%s",
+      "format": "%s_%s",
       "values": {
         "1F9B0": "red_haired",
         "1F9B1": "curly_haired",
@@ -1827,7 +1827,7 @@
       }
     },
     "gender": {
-      "prefix": "%s_",
+      "format": "%2$s_%s",
       "default": 0,
       "replace": ["person", "people"],
       "zwj": true,

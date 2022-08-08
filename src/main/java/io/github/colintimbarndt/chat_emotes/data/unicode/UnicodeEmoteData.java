@@ -18,7 +18,7 @@ public final class UnicodeEmoteData implements EmoteData {
     private final ResourceLocation location;
     final Set<Emote> emotes = new HashSet<>();
     final Map<String, Emote> emotesByUnicodeSequence = new TreeMap<>();
-    final Map<String, ModifiedEmote> emotesByAlias = new HashMap<>();
+    final Map<String, Emote> emotesByAlias = new HashMap<>();
     final Map<String, Emote> emotesByEmoticon = new HashMap<>();
 
     UnicodeEmoteData(ResourceLocation location) {
@@ -51,10 +51,7 @@ public final class UnicodeEmoteData implements EmoteData {
 
     @Override
     public @Nullable Emote emoteForAlias(@NotNull String alias) {
-        final var mEmote = emotesByAlias.get(alias);
-        if (mEmote == null) return null;
-        // TODO: Parse modifiers
-        return mEmote.plain;
+        return emotesByAlias.get(alias);
     }
 
     @Override
@@ -91,34 +88,6 @@ public final class UnicodeEmoteData implements EmoteData {
             for (FontGenerator.Font font : fonts.values()) {
                 font.close();
             }
-        }
-    }
-    record ModifiedEmote(Emote plain, Map<Modifiers, Emote> modifications) {
-        public ModifiedEmote(Emote plain) {
-            this(plain, new HashMap<>());
-        }
-    }
-    record Modifiers(UnicodeModifierType.Modifier @NotNull[] modifiers) {
-        public static final Modifiers NO_MODIFIERS = new Modifiers(new UnicodeModifierType.Modifier[0]);
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            Modifiers mods = (Modifiers) o;
-
-            if (modifiers.length != mods.modifiers.length) return false;
-            for (int i = 0; i < modifiers.length; i++) {
-                if (modifiers[i] != mods.modifiers[i]) return false;
-            }
-
-            return true;
-        }
-
-        @Override
-        public int hashCode() {
-            return Arrays.hashCode(modifiers);
         }
     }
 }
