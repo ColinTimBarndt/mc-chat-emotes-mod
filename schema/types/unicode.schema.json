@@ -90,12 +90,8 @@
             "description": "Higher priority modifiers are applied first, a low priority will for example add a suffix to the very end of an alias",
             "type": "integer"
           },
-          "prefix": {
-            "description": "Prepends a string to the start of the alias, supports Java templates",
-            "$ref": "#/$defs/java_template"
-          },
-          "suffix": {
-            "description": "Appends a string to the end of the alias, supports Java templates",
+          "format": {
+            "description": "Formats the alias using this format string with the first argument being the alias and the second the value of this modifier",
             "$ref": "#/$defs/java_template"
           },
           "zwj": {
@@ -124,7 +120,7 @@
             "required": ["default", "replace"],
             "properties": {
               "default": {
-                "description": "Default index for prefix/suffix when no replace pattern matches",
+                "description": "Default index for format when no replace pattern matches",
                 "type": "number"
               },
               "replace": {

@@ -1,7 +1,25 @@
 {
+  "$schema": "https://colintimbarndt.github.io/fabric_chat-emotes/schema/emote.schema.json",
   "type": "chat_emotes:unicode",
   "symbols": {
     "L{*|\\#|0-9}EU{!20E3}": "{asterisk|hash|zero|one|two|three|four|five|six|seven|eight|nine}",
+    "203C": "bangbang",
+    "2049": "interrobang",
+    "2122": "tm",
+    "2130": "information_source",
+    "2190-219F": [
+      4,
+      "left_right_arrow",
+      "up_down_arrow",
+      "arrow_upper_left",
+      "arrow_upper_right",
+      "arrow_lower_right",
+      "arrow_lower_left"
+    ],
+    "21A9-21AA": [
+      "leftwards_arrow_with_hook",
+      "rightwards_arrow_with_hook"
+    ],
     "2310-231F": [
       10,
       "watch",
@@ -229,7 +247,8 @@
     ],
     "2760-276F": [
       3,
-      ["heart_exclamation", "heavy_heart_exclamation_mark", "heart"]
+      ["heart_exclamation", "heavy_heart_exclamation_mark"],
+      "heart"
     ],
     "2795-2797": [
       "heavy_plus_sign",
@@ -685,6 +704,8 @@
       ["feet", "paw_prints"],
       "chipmunk"
     ],
+    "{!bear}+{!snowflake}": "polar_bear",
+    "{!cat}+{!black_large_square}": "black_cat",
     "1F440-1F44F": [
       "eyes",
       "eye",
@@ -692,7 +713,7 @@
       "nose",
       "lips",
       "tongue",
-      "point_up2",
+      ["point_up2", "point_up_2"],
       "point_down",
       "point_left",
       "point_right",
@@ -736,10 +757,35 @@
       "couple",
       ["two_men_holding_hands", "gay_couple"],
       ["two_women_holding_hands", "lesbian_couple"],
-      ["police_officer", "cop"],
+      ["police_officer", "cop", "person_police_officer"],
       ["dancers", "people_with_bunny_ears_partying"]
     ],
     "{man|woman#1-2&+}+{boy|girl#1-2&+}": ["family_{#*&_}", "family_{m|w#?}{b|g#?}"],
+    "{person|man|woman}+{!christmas_tree}": "{mx|mr|mrs}_claus",
+    "{man|woman}+{!cooking}": "{}_cook",
+    "{man|woman}+{!ear_of_rice}": "{}_farmer",
+    "{man|woman}+{!baby_bottle}": "{}_feeding_baby",
+    "{man|woman}+{!graduation_cap}": "{}_student",
+    "{man|woman}+{!school}": "{}_teacher",
+    "{man|woman}+{!art}": "{}_artist",
+    "{man|woman}+{!microphone}": "{}_singer",
+    "{man|woman}+{!laptop}": "{}_technologist",
+    "{man|woman}+{!factory}": "{}_factory_worker",
+    "{man|woman}+{!briefcase}": "{}_office_worker",
+    "{man|woman}+{!microscope}": "{}_scientist",
+    "{man|woman}+{!fire_engine}": "{}_firefighter",
+    "{man|woman}+{!rocket}": "{}_astronaut",
+    "{man|woman}+{!scales}E": "{}_judge",
+    "{man|woman}+{!airplane}E": "{}_pilot",
+    "{man|woman}+{!probing_cane}": "{}_with_probing_cane",
+    "{man|woman}+{manual_wheelchair|motorized_wheelchair}": "{}_in_{}",
+    "{man|woman}+{!medical_symbol}E": "{}_health_worker",
+    "{man|woman}+{!heart}E+{man|woman}": "couple_with_heart_{#*&_}",
+    "{man|woman}+{!heart}E+{!kiss}+{man|woman}": "kiss_{#*&_}",
+    "{!woman}+{!handshake}+{!man}": "woman_and_man_holding_hands",
+    "{!person}+{!handshake}+{!person}": "people_holding_hands",
+    "{!man}+{!handshake}+{!man}": "two_men_holding_hands",
+    "{!woman}+{!handshake}+{!woman}": "two_women_holding_hands",
     "1F470-1F47F": [
       "person_with_veil",
       "blond_haired_person",
@@ -826,7 +872,7 @@
       "money_with_wings",
       "chart",
       "seat",
-      "computer",
+      ["computer", "laptop"],
       "briefcase",
       "minidisc",
       "floppy_disk",
@@ -1017,8 +1063,8 @@
       ["clock", "mantlepiece_clock"],
       2,
       "hole",
-      ["levitate", "man_in_business_suit_levitating"],
-      ["detective", "spy", "sleuth_or_spy"],
+      ["levitate", "person_in_suit_levitating"],
+      ["detective", "spy", "sleuth_or_spy", "person_detective"],
       "dark_sunglasses",
       "spider",
       "spider_web",
@@ -1146,6 +1192,7 @@
       "open_mouth",
       "hushed"
     ],
+    "{!open_mouth}+{!dash}": "face_exhaling",
     "1F630-1F63F": [
       "cold_sweat",
       "scream",
@@ -1164,6 +1211,8 @@
       "pouting_cat",
       ["crying_cat_face", "crying_cat", "cat_crying"]
     ],
+    "{!dizzy_face}+{!dizzy}": "face_with_spiral_eyes",
+    "{!no_mouth}+{!fog}": "face_in_clouds",
     "1F640-1F64F": [
       "scream_cat",
       ["slight_frown", "slightly_frowning_face", "sad"],
@@ -1518,6 +1567,7 @@
       "mechanical_arm",
       "mechanical_leg"
     ],
+    "{!dog}+{!safety_west}": "service_dog",
     "1F9C0-1F9CF": [
       ["cheese", "cheese_wedge"],
       "cupcake",
@@ -1538,7 +1588,7 @@
     ],
     "1F9D0-1F9DF": [
       "face_with_monocle",
-      "adult",
+      ["adult", "person"],
       "child",
       "older_adult",
       "bearded_person",
@@ -1673,9 +1723,20 @@
       "dotted_line_face",
       "biting_lip",
       "bubbles",
-      "shaking_face",
-      ""
+      "shaking_face"
     ],
+    "1FAF0-1FAFF": [
+      "hand_with_index_and_thumb_crossed",
+      "rightwards_hand",
+      "leftwards_hand",
+      "palm_down_hand",
+      "palm_up_hand",
+      "index_pointing_at_the_viewer",
+      "heart_hands",
+      "leftwards_pushing_hand",
+      "rightwards_pushing_hand"
+    ],
+    "{!rightwards_hand}+{!leftwards_hand}": "handshake",
     "{!flag_white}E+{!rainbow}": ["rainbow_flag", "gay_pride_flag"],
     "{!flag_white}+{!orange_square}+{!black_large_square}+{!orange_square}": "refugee_nation_flag",
     "{!flag_white}E+{!transgender_symbol}E": ["transgender_flag", "transgender_pride_flag"],
@@ -1744,28 +1805,33 @@
     "{regional_indicator_a-regional_indicator_z#2}": "flag_{a-z#2}"
   },
   "modifiers": {
-    "color": {
-      "postfix": "#",
+    "skin": {
+      "priority": -1,
+      "format": "%s_tone%s",
       "values": {
-        "1F3FB": ["1", "2", "white"],
-        "1F3FC": "3",
-        "1F3FD": "4",
-        "1F3FE": "5",
-        "1F3FF": ["6", "black"]
+        "1F3FB": "1",
+        "1F3FC": "2",
+        "1F3FD": "3",
+        "1F3FE": "4",
+        "1F3FF": "5"
       }
     },
     "hair": {
-      "postfix": "@",
+      "priority": 1,
+      "format": "%s_%s",
       "values": {
-        "1F9B0": "red",
-        "1F9B1": "curly",
+        "1F9B0": "red_haired",
+        "1F9B1": "curly_haired",
         "1F9B2": "bald",
-        "1F9B3": "white"
+        "1F9B3": "white_haired"
       }
     },
     "gender": {
-      "postfix": "!",
+      "format": "%2$s_%s",
+      "default": 0,
       "replace": ["person", "people"],
+      "zwj": true,
+      "vs16": true,
       "values": {
         "male_sign": ["man", "men"],
         "female_sign": ["woman", "women"]
