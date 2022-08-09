@@ -713,7 +713,7 @@
       "nose",
       "lips",
       "tongue",
-      "point_up2",
+      ["point_up2", "point_up_2"],
       "point_down",
       "point_left",
       "point_right",

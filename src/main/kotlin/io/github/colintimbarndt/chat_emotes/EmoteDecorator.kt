@@ -2,26 +2,20 @@ package io.github.colintimbarndt.chat_emotes
 
 import io.github.colintimbarndt.chat_emotes.data.Emote
 import io.github.colintimbarndt.chat_emotes.util.ComponentUtils.fallback
-import io.github.colintimbarndt.chat_emotes.util.ComponentUtils.withStyle
 import io.github.colintimbarndt.chat_emotes.util.ComponentUtils.plusAssign
 import net.minecraft.ChatFormatting
-import net.minecraft.network.chat.ChatDecorator
-import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.*
 import net.minecraft.network.chat.Component.literal
-import net.minecraft.network.chat.HoverEvent
-import net.minecraft.network.chat.MutableComponent
-import net.minecraft.network.chat.Style
 import net.minecraft.network.chat.contents.LiteralContents
-import net.minecraft.server.level.ServerPlayer
 import java.util.concurrent.CompletableFuture
 
 object EmoteDecorator {
-    val EMOTES = ChatDecorator { sender, message -> CompletableFuture.completedFuture(replaceEmotes(sender, message)) }
+    val EMOTES = ChatDecorator { _, message -> CompletableFuture.completedFuture(replaceEmotes(message)) }
 
     private val FONT_BASE_STYLE: Style = Style.EMPTY.withColor(ChatFormatting.WHITE)
     private val HIGHLIGHT_STYLE: Style = Style.EMPTY.withColor(ChatFormatting.YELLOW)
 
-    private fun emoteForAlias(alias: String) : Emote? {
+    private fun emoteForAlias(alias: String): Emote? {
         val dataList = ChatEmotesMod.EMOTE_DATA_LOADER.loadedEmoteData
         for (data in dataList) {
             val result = data.emoteForAlias(alias)
@@ -40,25 +34,26 @@ object EmoteDecorator {
     }
 
     private fun createEmoteComponent(emote: Emote, fallback: String): Component {
+        var emoteStyle = FONT_BASE_STYLE.withFont(emote.font)
+        if (emote.aliases.isNotEmpty()) {
+            emoteStyle = emoteStyle.withHoverEvent(
+                HoverEvent(
+                    HoverEvent.Action.SHOW_TEXT,
+                    literal(":" + emote.aliases[0] + ":")
+                        .setStyle(HIGHLIGHT_STYLE)
+                )
+            )
+        }
         return fallback(
             literal(fallback),
             literal(emote.character.toString())
-                .withStyle(FONT_BASE_STYLE) {
-                    withFont(emote.font)
-                    withHoverEvent(
-                        HoverEvent(
-                            HoverEvent.Action.SHOW_TEXT,
-                            literal(":" + emote.aliases[0] + ":")
-                                .setStyle(HIGHLIGHT_STYLE)
-                        )
-                    )
-                }
+                .setStyle(emoteStyle)
         )
     }
 
-    private fun replaceEmotes(sender: ServerPlayer?, comp: Component): Component {
+    private fun replaceEmotes(comp: Component, filter: (Emote) -> Boolean = { true }): Component {
         val content = comp.contents
-        var mut : MutableComponent? = null
+        var mut: MutableComponent? = null
         if (content is LiteralContents) {
             val text = content.text
             var startClip = 0
@@ -70,29 +65,30 @@ object EmoteDecorator {
                         if (startAlias == -1 || startAlias == i) {
                             startAlias = i + 1
                         } else {
-                            val alias = text.substring(startAlias..i)
+                            val alias = text.substring(startAlias until i)
                             val emote = emoteForAlias(alias)
-                            if (emote == null) {
+                            if ((emote == null) || !filter(emote)) {
                                 startAlias = i + 1
                             } else {
                                 if (mut == null) mut = Component.empty()
                                 mut!!
-                                mut += text.substring(startClip, startAlias - 1)
+                                mut += text.substring(startClip until startAlias - 1)
                                 mut += createEmoteComponent(emote, ":$alias:")
                                 startClip = i + 1
                                 startAlias = -1
                             }
                         }
                     }
+
                     ' ' -> {
                         startAlias = -1
                         if (startEmoticon != i) {
-                            val emoticon = text.substring(startEmoticon..i)
+                            val emoticon = text.substring(startEmoticon until i)
                             val emote = emoteForEmoticon(emoticon)
-                            if (emote != null) {
+                            if ((emote != null) && filter(emote)) {
                                 if (mut == null) mut = Component.empty()
                                 mut!!
-                                mut += text.substring(startClip, startEmoticon)
+                                mut += text.substring(startClip until startEmoticon)
                                 mut += createEmoteComponent(emote, emoticon)
                                 startClip = i
                             }
@@ -107,7 +103,7 @@ object EmoteDecorator {
                 if (emote != null) {
                     if (mut == null) mut = Component.empty()
                     mut!!
-                    mut += text.substring(startClip, startEmoticon)
+                    mut += text.substring(startClip until startEmoticon)
                     mut += createEmoteComponent(emote, emoticon)
                     startClip = text.length
                 }

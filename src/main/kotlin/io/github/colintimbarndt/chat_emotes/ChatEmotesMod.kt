@@ -7,7 +7,7 @@ import io.github.colintimbarndt.chat_emotes.commands.ChatEmotesCommand
 import io.github.colintimbarndt.chat_emotes.config.ChatEmotesConfig
 import io.github.colintimbarndt.chat_emotes.data.EmoteDataLoader
 import io.github.colintimbarndt.chat_emotes.data.EmoteDataSerializer
-import io.github.colintimbarndt.chat_emotes.data.unicode.UnicodeEmoteData
+import io.github.colintimbarndt.chat_emotes.data.unicode.UnicodeEmoteDataSerializer
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.api.DedicatedServerModInitializer
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
@@ -90,7 +90,7 @@ class ChatEmotesMod : DedicatedServerModInitializer, ClientModInitializer {
 
         init {
             EMOTE_DATA_SERIALIZER = MappedRegistry(EMOTE_DATA_SERIALIZER_REGISTRY, Lifecycle.experimental(), null)
-            Registry.register(EMOTE_DATA_SERIALIZER, ResourceLocation(MOD_ID, "unicode"), UnicodeEmoteData.Serializer)
+            Registry.register(EMOTE_DATA_SERIALIZER, ResourceLocation(MOD_ID, "unicode"), UnicodeEmoteDataSerializer)
         }
 
         @JvmStatic

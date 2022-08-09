@@ -3,7 +3,6 @@ package io.github.colintimbarndt.chat_emotes.util
 import io.github.colintimbarndt.chat_emotes.util.StringBuilderExt.plusAssign
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.MutableComponent
-import net.minecraft.network.chat.Style
 import java.util.*
 
 @Suppress("NOTHING_TO_INLINE")
@@ -33,7 +32,4 @@ object ComponentUtils {
     inline operator fun MutableComponent.plusAssign(cs: List<Component>) {
         for (c in cs) this += c
     }
-
-    inline fun MutableComponent.withStyle(base: Style, modify: Style.() -> Style): MutableComponent =
-        setStyle(base.modify())
 }
