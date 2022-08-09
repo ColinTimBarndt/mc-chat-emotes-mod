@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.util.Properties
 
 plugins {
     val loomVersion: String by System.getProperties()
@@ -8,32 +9,38 @@ plugins {
     kotlin("jvm") version kotlinVersion
 }
 
+val config = Properties()
+File(rootDir, "build.properties").inputStream().use(config::load)
+
 base {
-    val archivesBaseName: String by project
+    val archivesBaseName = config.getProperty("fabric.archives_base_name")
     archivesName.set(archivesBaseName)
 }
 
-val modVersion: String by project
-val mavenGroup: String by project
+val modVersion = config.getProperty("mod_version")
+val mavenGroup = config.getProperty("maven_group")
 version = modVersion
-
 group = mavenGroup
+
 dependencies {
-    testImplementation("junit:junit:4.13.2")
     testImplementation("org.junit.jupiter:junit-jupiter:5.8.2")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.2")
 
     // To change the versions see the gradle.properties file
-    val minecraftVersion: String by project
-    val loaderVersion: String by project
+    val minecraftVersion = config.getProperty("minecraft_version")
+    val loaderVersion = config.getProperty("fabric.loader_version")
     minecraft("com.mojang", "minecraft", minecraftVersion)
     mappings(loom.officialMojangMappings())
     modImplementation("net.fabricmc", "fabric-loader", loaderVersion)
 
-    val fabricVersion: String by project
-    val fabricKotlinVersion: String by project
+    val fabricVersion = config.getProperty("fabric.fabric_version")
+    val fabricKotlinVersion = config.getProperty("fabric.fabric_kotlin_version")
     val kotlinVersion: String by System.getProperties()
     modImplementation("net.fabricmc.fabric-api", "fabric-api", fabricVersion)
     modImplementation("net.fabricmc", "fabric-language-kotlin", "${fabricKotlinVersion}+kotlin.${kotlinVersion}")
+
+    implementation(project(":common"))
+    include(project(":common"))
 }
 
 tasks {
@@ -75,7 +82,7 @@ tasks {
         targetCompatibility = javaVersion
         withSourcesJar()
     }
-    test {
+    getByName<Test>("test") {
         useJUnitPlatform()
     }
 }

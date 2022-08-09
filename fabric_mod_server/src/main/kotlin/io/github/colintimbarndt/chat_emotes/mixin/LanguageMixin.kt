@@ -21,9 +21,8 @@ import java.util.function.BiConsumer
     method = ["loadDefault"],
     at = [At(
         value = "INVOKE",
-        target = "Lnet/minecraft/locale/Language;loadFromJson(Ljava/io/InputStream;Ljava/util/function/BiConsumer;)V",
-        shift = At.Shift.AFTER,
-        remap = false
+        target = "Lnet/minecraft/locale/Language;loadFromJson",
+        shift = At.Shift.AFTER
     )],
     locals = LocalCapture.CAPTURE_FAILSOFT
 )

@@ -720,8 +720,8 @@
       "punch",
       "wave",
       "ok_hand",
-      ["thumbsup", "thumbup"],
-      ["thumbdown", "thumbsdown"],
+      ["thumbsup", "thumbup", "+1"],
+      ["thumbdown", "thumbsdown", "-1"],
       "clap"
     ],
     "1F450-1F45F": [
@@ -1839,8 +1839,6 @@
     }
   },
   "emoticons": {
-    "thumbsup": "+1",
-    "thumbsdown": "-1",
     "slight_smile": ":)",
     "smiling_imp": "]:)",
     "angry": ">:(",
