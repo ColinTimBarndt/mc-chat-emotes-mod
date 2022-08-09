@@ -15,7 +15,6 @@ object BomAwareReader {
         ByteOrderMark.UTF_8
     )
 
-    @JvmStatic
     @Throws(IOException::class)
     fun create(delegate: InputStream?): InputStreamReader {
         val bomStream = BOMInputStream(delegate, *BO_MARKS)
@@ -36,7 +35,6 @@ object BomAwareReader {
         return BufferedReader(create(delegate))
     }
 
-    @JvmStatic
     @Throws(IOException::class)
     fun createBuffered(delegate: InputStream?, sz: Int): BufferedReader {
         return BufferedReader(create(delegate), sz)

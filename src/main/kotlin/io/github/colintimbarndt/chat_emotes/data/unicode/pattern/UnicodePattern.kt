@@ -75,7 +75,6 @@ class UnicodePattern private constructor() {
     }
 
     companion object {
-        @JvmStatic
         @Throws(ParseException::class)
         fun parse(s: String): UnicodePattern {
             var i = 0

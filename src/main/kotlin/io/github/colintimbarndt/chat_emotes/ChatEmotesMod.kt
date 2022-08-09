@@ -23,6 +23,7 @@ import net.minecraft.core.Registry
 import net.minecraft.resources.ResourceKey
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.packs.PackType
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -69,23 +70,17 @@ class ChatEmotesMod : DedicatedServerModInitializer, ClientModInitializer {
 
     companion object {
         const val MOD_ID = "chat_emotes"
-        @JvmField
-		val LOGGER = LoggerFactory.getLogger("Chat Emotes")
-        @JvmStatic
+		val LOGGER: Logger = LoggerFactory.getLogger("Chat Emotes")
 		var config: ChatEmotesConfig? = null
             private set
-        @JvmStatic
 		var configDir: Path? = null
             private set
-        @JvmStatic
 		var modMetadata: ModMetadata? = null
             private set
         val EMOTE_DATA_SERIALIZER_REGISTRY: ResourceKey<Registry<EmoteDataSerializer<*>>> =
             ResourceKey.createRegistryKey(ResourceLocation(MOD_ID, "emote_data_serializer"))
 
-        @JvmField
 		val EMOTE_DATA_SERIALIZER: Registry<EmoteDataSerializer<*>>
-        @JvmField
 		val EMOTE_DATA_LOADER = EmoteDataLoader()
 
         init {
@@ -93,7 +88,6 @@ class ChatEmotesMod : DedicatedServerModInitializer, ClientModInitializer {
             Registry.register(EMOTE_DATA_SERIALIZER, ResourceLocation(MOD_ID, "unicode"), UnicodeEmoteDataSerializer)
         }
 
-        @JvmStatic
 		fun reloadConfig(): Boolean {
             val file = configDir!!.resolve("config.json").toFile()
             if (!file.exists()) {

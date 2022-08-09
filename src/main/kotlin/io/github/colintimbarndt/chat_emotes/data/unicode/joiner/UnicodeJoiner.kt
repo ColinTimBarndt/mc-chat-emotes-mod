@@ -103,7 +103,6 @@ class UnicodeJoiner private constructor() {
     }
 
     companion object {
-        @JvmStatic
         @Throws(ParseException::class)
         fun parse(s: String): UnicodeJoiner {
             var i = 0

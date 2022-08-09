@@ -1,6 +1,5 @@
 package io.github.colintimbarndt.chat_emotes.data.unicode
 
-import org.jetbrains.annotations.Contract
 import java.util.*
 import java.util.regex.Pattern
 
@@ -105,8 +104,6 @@ class UnicodeModifierType(val name: String, val priority: Int, val defaultChoice
     }
 
     companion object {
-        @JvmStatic
-        @Contract("_, _, _ -> new")
         fun build(name: String, defaultChoice: Int, format: String): Builder {
             return Builder(name, defaultChoice, format)
         }

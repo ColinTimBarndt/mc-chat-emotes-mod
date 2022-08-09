@@ -116,7 +116,6 @@ data class NamedPatternSlot(
             Pattern.CASE_INSENSITIVE
         )
 
-        @JvmStatic
         @Throws(ParseException::class)
         fun parse(content: String, start: Int, mode: Mode): NamedPatternSlot {
             val parts = when (mode) {

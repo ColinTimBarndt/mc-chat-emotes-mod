@@ -64,7 +64,6 @@ data class JoinerSlot(
                     "(#(?<count>\\d+|\\*|\\?)(&(?<join>.*))?)?$"
         )
 
-        @JvmStatic
         @Throws(ParseException::class)
         fun parse(content: String, start: Int): JoinerSlot {
             val parts = SLOT_EXPR.matcher(content)

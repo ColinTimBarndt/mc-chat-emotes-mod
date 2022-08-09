@@ -7,14 +7,19 @@ import java.text.ParseException
  */
 data class SlotQuantifier(val min: Int, val max: Int) {
     companion object {
-        val ONE: SlotQuantifier = SlotQuantifier(1, 1)
-        val GREEDY: SlotQuantifier = SlotQuantifier(0, Int.MAX_VALUE)
+        private val ONE: SlotQuantifier = SlotQuantifier(1, 1)
+        private val GREEDY: SlotQuantifier = SlotQuantifier(0, Int.MAX_VALUE)
 
-        @JvmStatic
         @Throws(ParseException::class)
         fun parse(minStr: String?, maxStr: String?, source: String, start: Int): SlotQuantifier {
-            if (minStr == null) return ONE
-            if (minStr == "*") return GREEDY
+            if (minStr == null) {
+                assert(maxStr == null)
+                return ONE
+            }
+            if (minStr == "*") {
+                assert(maxStr == null)
+                return GREEDY
+            }
             val max: Int
             val min: Int = Integer.parseUnsignedInt(minStr)
             if (maxStr != null) {
