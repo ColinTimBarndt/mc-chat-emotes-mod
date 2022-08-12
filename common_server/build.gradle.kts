@@ -8,6 +8,9 @@ plugins {
     kotlin("jvm") version kotlinVersion
 }
 
+val side = "server"
+val modLoader = "common"
+
 val config = Properties()
 File(rootDir, "build.properties").inputStream().use(config::load)
 
@@ -16,7 +19,7 @@ val mavenGroup = config.getProperty("maven_group")
 version = modVersion
 group = mavenGroup
 
-base.archivesName.set(config.getProperty("common.archives_base_name"))
+base.archivesName.set(String.format(config.getProperty("archives_base_name"), side, modLoader))
 
 dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")

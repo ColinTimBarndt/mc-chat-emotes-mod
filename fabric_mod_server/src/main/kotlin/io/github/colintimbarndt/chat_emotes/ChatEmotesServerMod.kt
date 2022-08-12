@@ -33,7 +33,7 @@ object ChatEmotesServerMod : ChatEmotesServerModBase(), DedicatedServerModInitia
         registries = Registries(
             FabricRegistryBuilder.createSimple<EmoteDataSerializer<*>>(
                 null,
-                ResourceLocation(MOD_ID, "emote_data_serializer")
+                ResourceLocation(NAMESPACE, "emote_data_serializer")
             ).buildAndRegister()
         ).apply {
             emoteDataSerializers.register("unicode", UnicodeEmoteDataSerializer)

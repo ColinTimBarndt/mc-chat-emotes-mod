@@ -1,6 +1,6 @@
 rootProject.name = "chat-emotes"
 
-include("common")
+include("common_server")
 include("fabric_mod_server")
 
 pluginManagement {

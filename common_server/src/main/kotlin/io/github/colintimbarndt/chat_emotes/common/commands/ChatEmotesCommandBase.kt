@@ -5,10 +5,12 @@ import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.context.CommandContext
 import com.mojang.brigadier.suggestion.Suggestions
 import com.mojang.brigadier.suggestion.SuggestionsBuilder
-import io.github.colintimbarndt.chat_emotes.common.ChatEmotesServerModBase
-import io.github.colintimbarndt.chat_emotes.common.LOGGER
-import io.github.colintimbarndt.chat_emotes.common.MOD_ID
+import io.github.colintimbarndt.chat_emotes.common.*
 import io.github.colintimbarndt.chat_emotes.common.data.PackExportException
+import io.github.colintimbarndt.chat_emotes.common.permissions.COMMAND_PERMISSION
+import io.github.colintimbarndt.chat_emotes.common.permissions.EXPORT_COMMAND_PERMISSION
+import io.github.colintimbarndt.chat_emotes.common.permissions.RELOAD_COMMAND_PERMISSION
+import io.github.colintimbarndt.chat_emotes.common.permissions.permissionPredicate
 import io.github.colintimbarndt.chat_emotes.common.util.ComponentUtils.fallbackTranslatable
 import net.minecraft.commands.CommandSourceStack
 import net.minecraft.commands.Commands
@@ -91,17 +93,18 @@ abstract class ChatEmotesCommandBase {
 
     fun register(dispatcher: CommandDispatcher<CommandSourceStack>) {
         val reload = Commands.literal("reload")
-            .requires { source: CommandSourceStack -> source.hasPermission(2) }
+            .requires(serverMod.permissionsAdapter.permissionPredicate(RELOAD_COMMAND_PERMISSION))
             .executes(::tryReloadConfig)
         val export = Commands.literal("export")
-            .requires { source: CommandSourceStack -> source.hasPermission(4) }
+            .requires(serverMod.permissionsAdapter.permissionPredicate(EXPORT_COMMAND_PERMISSION))
             .then(
                 Commands.argument("pack name", StringArgumentType.string())
                     .suggests(::suggestResourcepackNames)
                     .executes(::tryExportResourcepacks)
             )
         dispatcher.register(
-            Commands.literal(MOD_ID)
+            Commands.literal(NAMESPACE)
+                .requires(serverMod.permissionsAdapter.permissionPredicate(COMMAND_PERMISSION))
                 .then(reload)
                 .then(export)
         )

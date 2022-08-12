@@ -6,7 +6,7 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonSyntaxException
 import io.github.colintimbarndt.chat_emotes.common.ChatEmotesServerModBase
 import io.github.colintimbarndt.chat_emotes.common.LOGGER
-import io.github.colintimbarndt.chat_emotes.common.MOD_ID
+import io.github.colintimbarndt.chat_emotes.common.NAMESPACE
 import io.github.colintimbarndt.chat_emotes.common.util.BomAwareReader.createBuffered
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.packs.resources.Resource
@@ -20,7 +20,7 @@ import java.util.concurrent.Executor
 abstract class EmoteDataLoaderBase {
     var loadedEmoteData: List<EmoteData> = emptyList()
         protected set
-    protected val resourceLoaderIdentifier by lazy { ResourceLocation(MOD_ID, "emotes") }
+    protected val resourceLoaderIdentifier = ResourceLocation(NAMESPACE, "emotes")
     private val gson = GsonBuilder()
         .registerTypeAdapter(ResourceLocation::class.java, ResourceLocation.Serializer())
         .create()

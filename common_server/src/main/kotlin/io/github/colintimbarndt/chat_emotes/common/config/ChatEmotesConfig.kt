@@ -31,11 +31,6 @@ class ChatEmotesConfig private constructor(val resourcepacks: List<ResourcepackC
             ctx: JsonDeserializationContext
         ): ChatEmotesConfig {
             val root = element.asJsonObject
-            if (!GsonHelper.isStringValue(root, "version")) {
-                throw JsonSyntaxException(
-                    "Expected version to be a string, got " + GsonHelper.getType(root["version"])
-                )
-            }
             val resourcepacks = ctx.deserialize<List<ResourcepackConfig>>(
                 GsonHelper.getAsJsonObject(root, "resourcepacks"),
                 ResourcepackConfig.LIST_TYPE

@@ -3,6 +3,8 @@ package io.github.colintimbarndt.chat_emotes.common
 import com.google.gson.JsonParseException
 import io.github.colintimbarndt.chat_emotes.common.config.ChatEmotesConfig
 import io.github.colintimbarndt.chat_emotes.common.data.EmoteDataLoaderBase
+import io.github.colintimbarndt.chat_emotes.common.permissions.PermissionsAdapter
+import io.github.colintimbarndt.chat_emotes.common.permissions.VanillaPermissionsAdapter
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
@@ -14,6 +16,7 @@ abstract class ChatEmotesServerModBase {
     abstract val emoteDataLoader: EmoteDataLoaderBase
     abstract val registries: Registries
     abstract val emoteDecorator: EmoteDecoratorBase
+    var permissionsAdapter: PermissionsAdapter = VanillaPermissionsAdapter
 
     fun reloadConfig(): Boolean {
         val file = configPath.resolve("config.json").toFile()

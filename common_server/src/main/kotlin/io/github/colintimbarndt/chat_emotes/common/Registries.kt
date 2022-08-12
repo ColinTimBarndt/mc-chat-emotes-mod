@@ -9,7 +9,7 @@ open class Registries(
     val emoteDataSerializers: Registry<EmoteDataSerializer<*>>
 ) {
     inline fun <T> Registry<T>.register(key: String, value: T) {
-        Registry.register(this, ResourceLocation(MOD_ID, key), value)
+        Registry.register(this, ResourceLocation(NAMESPACE, key), value)
     }
     inline fun <T> Registry<T>.register(location: ResourceLocation, value: T) {
         Registry.register(this, location, value)
