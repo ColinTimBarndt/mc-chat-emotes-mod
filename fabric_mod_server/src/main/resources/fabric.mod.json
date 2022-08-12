@@ -17,18 +17,12 @@
   "license": "CC-BY-SA-4.0",
   "icon": "assets/chat_emotes/icon.png",
 
-  "environment": "*",
+  "environment": "server",
   "entrypoints": {
     "server": [
       {
         "adapter": "kotlin",
-        "value": "io.github.colintimbarndt.chat_emotes.ChatEmotesMod"
-      }
-    ],
-    "client": [
-      {
-        "adapter": "kotlin",
-        "value": "io.github.colintimbarndt.chat_emotes.ChatEmotesMod"
+        "value": "io.github.colintimbarndt.chat_emotes.ChatEmotesServerMod"
       }
     ]
   },

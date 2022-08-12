@@ -26,20 +26,16 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.8.2")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.2")
 
-    // To change the versions see the gradle.properties file
-    val minecraftVersion = config.getProperty("minecraft_version")
-    val loaderVersion = config.getProperty("fabric.loader_version")
-    minecraft("com.mojang", "minecraft", minecraftVersion)
+    minecraft("com.mojang", "minecraft", config.getProperty("minecraft_version"))
     mappings(loom.officialMojangMappings())
-    modImplementation("net.fabricmc", "fabric-loader", loaderVersion)
+    modImplementation("net.fabricmc", "fabric-loader", config.getProperty("fabric.loader_version"))
+    modImplementation("net.fabricmc.fabric-api", "fabric-api", config.getProperty("fabric.fabric_version"))
 
-    val fabricVersion = config.getProperty("fabric.fabric_version")
     val fabricKotlinVersion = config.getProperty("fabric.fabric_kotlin_version")
     val kotlinVersion: String by System.getProperties()
-    modImplementation("net.fabricmc.fabric-api", "fabric-api", fabricVersion)
     modImplementation("net.fabricmc", "fabric-language-kotlin", "${fabricKotlinVersion}+kotlin.${kotlinVersion}")
 
-    implementation(project(":common"))
+    implementation(project(":common", "namedElements"))
     include(project(":common"))
 }
 
@@ -63,8 +59,6 @@ tasks {
             args += "-Xjvm-default=all"
             freeCompilerArgs = args
         }
-        //sourceCompatibility = javaVersion.toString()
-        //targetCompatibility = javaVersion.toString()
     }
     jar {
         from("LICENSE") { rename { "${it}_${base.archivesName.get()}" } }
