@@ -1,22 +1,20 @@
 package io.github.colintimbarndt.chat_emotes_util.emojidata
 
-import io.github.colintimbarndt.chat_emotes_util.AsURI
+import io.github.colintimbarndt.chat_emotes_util.WebHelper.FileSource
 import io.github.colintimbarndt.chat_emotes_util.WebHelper
-import java.net.URI
 
 sealed class TextureRights(
     val kind: LicenseKind,
 ) {
-    abstract val source: URI?
+    abstract val source: FileSource?
     abstract val message: String
 
-    class License(override val source: URI, kind: LicenseKind) : TextureRights(kind) {
-        constructor(source: AsURI, kind: LicenseKind) : this(source.uri, kind)
+    class License(override val source: FileSource, kind: LicenseKind) : TextureRights(kind) {
         override val message get() = "This work is licensed under a $kind"
     }
 
     object Copyright : TextureRights(LicenseKind.Copyright) {
-        override val source: URI? = null
+        override val source: FileSource? = null
         override val message get() = "This work is copyrighted. Permission must be granted by the copyright holder"
     }
 
@@ -35,7 +33,7 @@ sealed class TextureRights(
             LicenseKind.CreativeCommons
         )
         val JOYPIXELS_FREE = License(
-            URI("https://cdn.joypixels.com/free-license.pdf"),
+            WebHelper.FileUri("https://cdn.joypixels.com/free-license.pdf"),
             LicenseKind.PersonalUse
         )
     }

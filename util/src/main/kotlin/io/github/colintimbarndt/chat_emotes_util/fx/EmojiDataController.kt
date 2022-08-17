@@ -2,8 +2,12 @@ package io.github.colintimbarndt.chat_emotes_util.fx
 
 import io.github.colintimbarndt.chat_emotes_util.App
 import io.github.colintimbarndt.chat_emotes_util.LOGGER
-import io.github.colintimbarndt.chat_emotes_util.serial.PackFormat
 import io.github.colintimbarndt.chat_emotes_util.emojidata.*
+import io.github.colintimbarndt.chat_emotes_util.serial.FontAssetOptions
+import io.github.colintimbarndt.chat_emotes_util.serial.PackFormat
+import io.github.colintimbarndt.chat_emotes_util.serial.PackWriter
+import io.github.colintimbarndt.chat_emotes_util.serial.addMetadata
+import javafx.application.Platform
 import javafx.collections.ListChangeListener
 import javafx.fxml.FXML
 import javafx.fxml.FXMLLoader
@@ -11,11 +15,11 @@ import javafx.scene.Node
 import javafx.scene.control.*
 import javafx.stage.FileChooser
 import javafx.util.StringConverter
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import java.io.File
+import java.util.concurrent.CountDownLatch
 
 class EmojiDataController {
     companion object : TabEntry {
@@ -25,6 +29,7 @@ class EmojiDataController {
             FXMLLoader.load(App::class.java.getResource("/scenes/EmojiData.fxml"))
 
         private val jsonExtensionFilter = FileChooser.ExtensionFilter("JSON Files", "*.json")
+        private val zipExtensionFilter = FileChooser.ExtensionFilter("ZIP Files", "*.zip")
     }
 
     /* DATA */
@@ -77,7 +82,7 @@ class EmojiDataController {
 
         dataAliasesCombo.items.setAll(*EmojiAliasSource.values())
         dataAliasesCombo.selectionModel.run {
-            selectionMode = SelectionMode.MULTIPLE
+            selectionMode = SelectionMode.SINGLE
             select(EmojiAliasSource.EmojiData)
             selectedItems.addListener(ListChangeListener {
                 exportDataButton.isDisable = it.list.isEmpty()
@@ -123,8 +128,9 @@ class EmojiDataController {
         GlobalScope.launch(Dispatchers.IO) {
             LOGGER.info("Writing emoji data to {}", file.absolutePath)
             val data = streamIncludedEmojiData()
-                .let(::convertToChatEmoteData)
-                .map { it.third }
+                .flatEmojiData()
+                .expandToEmoteData(dataAliasesCombo.selectionModel.selectedItem!!.load())
+                .map(ExpandedEmoteData::emote)
             file.outputStream().use { stream ->
                 writeChatEmoteData(data, stream, prettyDataCheck.isSelected)
             }
@@ -133,13 +139,51 @@ class EmojiDataController {
         }
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     @FXML
     fun exportAssets() {
         val choose = FileChooser().apply {
             title = "Save Emoji Resourcepack"
-            extensionFilters.setAll(jsonExtensionFilter)
+            extensionFilters.setAll(zipExtensionFilter)
             initialFileName = "emoji.zip"
-            selectedExtensionFilter = jsonExtensionFilter
+            selectedExtensionFilter = zipExtensionFilter
+        }
+        exportAssetsButton.isDisable = true
+        val file: File = choose.showSaveDialog(App.INSTANCE.stage)
+        GlobalScope.launch {
+            LOGGER.info("Writing resource pack to {}", file.absolutePath)
+            val sourceSize = assetResolutionChoice.value!!
+            val cleanLicense = cleanAssetsCheck.isSelected
+            val data = streamIncludedEmojiData()
+                .flatEmojiData()
+                .expandToEmoteData(EmojiAliasSource.None.load())
+            val textures = withContext(Dispatchers.IO) {
+                assetTextureSource.value!!.loader.load(sourceSize, cleanLicense)
+            }
+            val glyphOptions = FontAssetOptions(glyphSize = sourceSize)
+            PackWriter.of(file).use { packWriter ->
+                packWriter.addMetadata {
+                    pack.format = assetGameVersionChoice.value.resourceFormat
+                    pack.description = buildJsonObject {
+                        put("text", "Emoji Chat Emotes")
+                        put("color", "yellow")
+                    }
+                }
+                val lock = CountDownLatch(1)
+                Platform.runLater {
+                    var fontId = 0
+                    try {
+                        writeFonts(packWriter, data, textures, glyphOptions, "chat_emotes") {
+                            "emoji_" + fontId++
+                        }
+                    } finally {
+                        lock.countDown()
+                    }
+                }
+                withContext(Dispatchers.IO) { lock.await() }
+            }
+            LOGGER.info("Done writing resource pack")
+            exportAssetsButton.isDisable = false
         }
     }
 }

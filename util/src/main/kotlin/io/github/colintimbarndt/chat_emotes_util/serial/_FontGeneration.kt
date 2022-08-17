@@ -5,17 +5,25 @@
 package io.github.colintimbarndt.chat_emotes_util.serial
 
 import io.github.colintimbarndt.chat_emotes_util.emojidata.TextureLoader
+import javafx.embed.swing.SwingFXUtils
+import javafx.scene.SnapshotParameters
+import javafx.scene.canvas.Canvas
+import javafx.scene.image.WritableImage
+import javafx.scene.paint.Color
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonClassDiscriminator
 import java.awt.image.BufferedImage
 import java.io.Closeable
 import java.io.IOException
 import javax.imageio.ImageIO
 
 data class FontAssetOptions(
-    val glyphSize: Int = 0,
-    val atlasSize: Int = 8,
-    val glyphHeight: Int = 8,
-    val glyphAscent: Int = 8,
+    var glyphSize: Int = 0,
+    var atlasSize: Int = 8,
+    var glyphHeight: Int = 8,
+    var glyphAscent: Int = 8,
 )
 
 class FontWriter(
@@ -25,46 +33,47 @@ class FontWriter(
     val name: String,
 ) : Closeable, AutoCloseable {
     private val metadata = FontMetadata()
-    private var atlasId = 0
-    private var image = createImage()
-    private var graphics = image.graphics
-    private var provider = createProvider()
+    private var atlasId = -1
+    private val canvas = createCanvas()
+    private val graphics = canvas.graphicsContext2D
+    private lateinit var provider: FontMetadata.BitmapProvider
     private val maxGlyphs = options.atlasSize.let { it * it }
-    private var glyphs = 0
+    private var glyphs = maxGlyphs
+    private var atlasBuffer: BufferedImage? = null
+    private val snapshotParameters = SnapshotParameters().apply {
+        fill = Color.TRANSPARENT
+    }
 
     private var closed = false
-
-    init {
-        metadata.providers
-    }
 
     private inline fun ensureOpen() {
         if (closed) throw IOException("Stream closed")
     }
 
-    private inline fun createImage(): BufferedImage {
-        val size = options.glyphSize * options.atlasSize
-        return BufferedImage(size, size, BufferedImage.TYPE_4BYTE_ABGR)
+    private inline fun createCanvas(): Canvas {
+        val size = (options.glyphSize * options.atlasSize).toDouble()
+        return Canvas(size, size)
     }
 
     private inline fun createProvider() =
         FontMetadata.BitmapProvider(
-            "$namespace:font/$name/$atlasId.png", Array(options.atlasSize) { CharArray(options.atlasSize) },
+            "$namespace:font/$name/$atlasId.png", (Array(options.atlasSize) { CharArrayString(options.atlasSize) }),
             options.glyphAscent, options.glyphHeight
         ).also(metadata.providers::add)
 
     private fun flushAtlas() {
-        image.flush()
-        graphics.dispose()
+        if (atlasId < 0) return
         packWriter.addFile("assets/$namespace/textures/font/$name/$atlasId.png") { file ->
-            ImageIO.write(image, "png", file)
+            val image = WritableImage(canvas.width.toInt(), canvas.height.toInt())
+            canvas.snapshot(snapshotParameters, image)
+            atlasBuffer = SwingFXUtils.fromFXImage(image, atlasBuffer)!!
+            ImageIO.write(atlasBuffer, "png", file)
         }
     }
 
     private inline fun newAtlas() {
         atlasId++
-        image = createImage()
-        graphics = image.graphics
+        graphics.clearRect(.0, .0, canvas.width, canvas.height)
         provider = createProvider()
         glyphs = 0
     }
@@ -80,12 +89,7 @@ class FontWriter(
         val tileY = glyphs / options.atlasSize
         val x = tileX * size
         val y = tileY * size
-        graphics.drawImage(
-            sprite.image,
-            x, y, size, size,
-            sprite.x, sprite.y, sprite.size, sprite.size,
-            null
-        )
+        sprite.drawImage(graphics, x.toDouble(), y.toDouble(), size.toDouble())
         provider.chars[tileY][tileX] = char
         glyphs++
     }
@@ -110,19 +114,19 @@ inline fun PackWriter.addFont(namespace: String, name: String, apply: FontAssetO
 internal class FontMetadata {
     val providers: ArrayList<Provider> = arrayListOf()
 
+    @OptIn(ExperimentalSerializationApi::class)
     @Serializable
-    internal sealed class Provider {
-        abstract val type: String
-    }
+    @JsonClassDiscriminator("type")
+    internal sealed class Provider
 
     @Serializable
+    @SerialName("minecraft:bitmap")
     internal data class BitmapProvider(
         val file: String,
-        val chars: Array<CharArray>,
+        val chars: Array<CharArrayString>,
         val ascent: Int = 8,
         val height: Int = 8,
     ) : Provider() {
-        override val type = "bitmap"
 
         override fun equals(other: Any?): Boolean {
             if (this === other) return true

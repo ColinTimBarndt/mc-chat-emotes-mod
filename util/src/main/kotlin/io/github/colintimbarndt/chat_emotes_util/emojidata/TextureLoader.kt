@@ -3,18 +3,23 @@ package io.github.colintimbarndt.chat_emotes_util.emojidata
 import io.github.colintimbarndt.chat_emotes_util.LOGGER
 import io.github.colintimbarndt.chat_emotes_util.WebHelper
 import io.github.colintimbarndt.chat_emotes_util.serial.BaseEmojiData
+import io.github.colintimbarndt.chat_emotes_util.serial.UnicodeSequence
+import javafx.scene.canvas.GraphicsContext
+import javafx.scene.image.Image
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.awt.Image
-import java.awt.image.BufferedImage
 import java.io.Closeable
 import java.io.File
-import java.net.URI
+import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
-import javax.imageio.ImageIO
 import kotlin.streams.asSequence
 
-typealias SourceMapper = (Int, Boolean) -> URI
+fun interface SourceMapper {
+    fun map(resolution: Int, clean: Boolean): WebHelper.FileSource
+
+}
+
+inline operator fun SourceMapper.invoke(resolution: Int, clean: Boolean) = map(resolution, clean).uri
 
 abstract class TextureLoader {
     abstract val sizes: IntArray
@@ -24,7 +29,19 @@ abstract class TextureLoader {
         abstract operator fun get(data: BaseEmojiData): ImageView?
     }
 
-    data class ImageView(val image: Image, val x: Int, val y: Int, val size: Int)
+    data class ImageView(val image: Image, val x: Double, val y: Double, val size: Double) {
+        @Suppress("NOTHING_TO_INLINE")
+        inline fun drawImage(graphics: GraphicsContext, dx: Double, dy: Double, dSize: Double) {
+            if (image.isBackgroundLoading) {
+                LOGGER.warn("Loading image will be ignored")
+            }
+            graphics.drawImage(
+                image,
+                x, y, size, size,
+                dx, dy, dSize, dSize
+            )
+        }
+    }
 
     abstract suspend fun load(size: Int, clean: Boolean): LoadedTextures
 
@@ -36,12 +53,13 @@ abstract class TextureLoader {
     ) : TextureLoader() {
         override suspend fun load(size: Int, clean: Boolean): LoadedAtlasTextures {
             val image = withContext(Dispatchers.IO) {
-                ImageIO.read(atlasSource(size, clean).toURL())
+                Image(WebHelper.getInputStream(atlasSource(size, clean)).body())
             }
-            return LoadedAtlasTextures(image, size)
+            if (image.exception != null) throw image.exception
+            return LoadedAtlasTextures(image, size.toDouble())
         }
 
-        inner class LoadedAtlasTextures(val image: BufferedImage, val size: Int) : LoadedTextures() {
+        inner class LoadedAtlasTextures(val image: Image, private val size: Double) : LoadedTextures() {
             operator fun get(sheetX: Int, sheetY: Int): ImageView {
                 // See https://github.com/iamcal/emoji-data#understanding-the-spritesheets
                 val paddedSize = size + 2 * padding
@@ -52,9 +70,7 @@ abstract class TextureLoader {
 
             override fun get(data: BaseEmojiData) = this[data.sheetX.toInt(), data.sheetY.toInt()]
 
-            override fun close() {
-                image.flush()
-            }
+            override fun close() {}
         }
 
         companion object {
@@ -65,12 +81,14 @@ abstract class TextureLoader {
         }
     }
 
-    class ZipArchiveTextureLoader internal constructor(
+    sealed class ZipArchiveTextureLoader<K>(
         private val atlasSource: SourceMapper,
         override val sizes: IntArray,
         override val defaultSize: Int,
-        private val keyMapper: (BaseEmojiData) -> String,
     ) : TextureLoader() {
+        abstract fun getKey(data: BaseEmojiData): K
+        abstract fun buildIndex(file: ZipFile): Map<K, ZipEntry>
+        private val cache = hashMapOf<Pair<Int, Boolean>, File>()
         override suspend fun load(size: Int, clean: Boolean): LoadedTextures {
             val zipFile = withContext(Dispatchers.IO) {
                 val file = cache[size to clean] ?: run {
@@ -86,27 +104,50 @@ abstract class TextureLoader {
                 }
                 ZipFile(file, ZipFile.OPEN_READ)
             }
-            return LoadedZipTextures(zipFile, size)
+            return LoadedZipTextures(zipFile, size.toDouble())
         }
 
-        inner class LoadedZipTextures(private val zipFile: ZipFile, private val size: Int) : LoadedTextures() {
+        inner class LoadedZipTextures(private val zipFile: ZipFile, private val size: Double) : LoadedTextures() {
+            private val index = buildIndex(zipFile)
             override operator fun get(data: BaseEmojiData): ImageView? {
-                val key = keyMapper(data)
-                val entry = zipFile.getEntry(key) ?: return null
+                val entry = index[getKey(data)] ?: return null
                 val stream = zipFile.getInputStream(entry)
-                val image = ImageIO.read(stream)
+                val image = Image(stream)
+                if (image.exception != null) throw image.exception
                 if (image.width != size || image.height != size) {
                     LOGGER.warn("Texture size mismatch: Expected square ${size}px image, got ${image.width}x${image.height}")
                 }
-                return ImageView(image, 0, 0, size)
+                return ImageView(image, .0, .0, size)
             }
+
             override fun close() {
                 zipFile.close()
             }
         }
+    }
 
-        companion object {
-            private var cache = hashMapOf<Pair<Int, Boolean>, File>()
+    class UnifiedZipArchiveTextureLoader internal constructor(atlasSource: SourceMapper, sizes: IntArray, defaultSize: Int) :
+        ZipArchiveTextureLoader<UnicodeSequence>(
+            atlasSource, sizes, defaultSize
+        ) {
+        override fun getKey(data: BaseEmojiData) = data.unified
+
+        override fun buildIndex(file: ZipFile): Map<UnicodeSequence, ZipEntry> {
+            val entries = file.entries()
+            val map = hashMapOf<UnicodeSequence, ZipEntry>()
+            while (entries.hasMoreElements()) {
+                val entry = entries.nextElement()
+                var name = entry.name
+                if (name.endsWith(".png", ignoreCase = true)) {
+                    name = name.substring(0 until name.length - 4)
+                    runCatching {
+                        UnicodeSequence.parse(name)
+                    }.onSuccess { key ->
+                        map += key to entry
+                    }
+                }
+            }
+            return map
         }
     }
 
@@ -118,15 +159,8 @@ abstract class TextureLoader {
         fun atlas(sizes: IntArray, defaultSize: Int, padding: Int = 0, source: SourceMapper) =
             AtlasTextureLoader(source, sizes, defaultSize, padding)
 
-        fun zipArchive(sizes: IntArray, defaultSize: Int, source: SourceMapper, keyMapper: (BaseEmojiData) -> String) =
-            ZipArchiveTextureLoader(source, sizes, defaultSize, keyMapper)
-
         fun unifiedZipArchive(sizes: IntArray, defaultSize: Int, source: SourceMapper) =
-            zipArchive(sizes, defaultSize, source) { data ->
-                data.unified.codePoints().asSequence()
-                    .map { it.toString(16).uppercase() }
-                    .joinToString("-")
-            }
+            UnifiedZipArchiveTextureLoader(source, sizes, defaultSize)
 
         fun emojiDataSpritesheet(vendor: String) =
             atlas(resEmojiData, 32, AtlasTextureLoader.EMOJI_DATA_PADDING) { size, clean ->
@@ -134,12 +168,17 @@ abstract class TextureLoader {
                     "iamcal", "emoji-data", "master",
                     if (clean) "sheets-clean/sheet_${vendor}_${size}_clean.png"
                     else "sheet_${vendor}_${size}.png"
-                ).uri
+                )
             }
 
         fun openmoji(variant: String = "color") =
             unifiedZipArchive(resOpenMoji, 72) { size, _ ->
-                URI("https://github.com/hfg-gmuend/openmoji/releases/latest/download/openmoji-${size}x${size}-${variant}.zip")
+                WebHelper.GithubRelease(
+                    "hfg-gmuend",
+                    "openmoji",
+                    "latest",
+                    "openmoji-${size}x${size}-${variant}.zip"
+                )
             }
     }
 }

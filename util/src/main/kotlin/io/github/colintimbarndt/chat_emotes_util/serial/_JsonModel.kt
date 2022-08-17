@@ -9,9 +9,31 @@ import kotlinx.serialization.Serializable
 data class ChatEmoteData(
     val name: String,
     val emoji: String,
-    val aliases: List<String>,
+    val aliases: Array<String>,
     val char: Char,
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as ChatEmoteData
+
+        if (name != other.name) return false
+        if (emoji != other.emoji) return false
+        if (!aliases.contentEquals(other.aliases)) return false
+        if (char != other.char) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = name.hashCode()
+        result = 31 * result + emoji.hashCode()
+        result = 31 * result + aliases.contentHashCode()
+        result = 31 * result + char.hashCode()
+        return result
+    }
+}
 
 @Serializable
 sealed class BaseEmojiData {
@@ -75,7 +97,20 @@ data class EmojiData(
 ) : BaseEmojiData()
 
 @JvmInline
-@Serializable(UnicodeSequenceSerializer::class)
-value class UnicodeSequence(private val delegate: String) : CharSequence by delegate {
+@Serializable
+value class UnicodeSequence(
+    @Serializable(UnicodeSequenceSerializer::class)
+    private val delegate: String
+) : CharSequence by delegate {
     override fun toString() = delegate
+
+    companion object {
+        private val defaultDelimiters = charArrayOf('-', '_', ' ').apply { sort() }
+        fun parse(str: String, vararg delimiters: Char = defaultDelimiters): UnicodeSequence {
+            val sb = StringBuilder(16)
+            val src = str.splitToSequence(*delimiters)
+            src.forEach { sb.appendCodePoint(it.toInt(16)) }
+            return UnicodeSequence(sb.toString())
+        }
+    }
 }

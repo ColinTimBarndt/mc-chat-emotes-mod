@@ -31,10 +31,10 @@ fun loadJoypixelsEmojiData(jsonStream: InputStream): JoypixelsEmojiData =
 
 fun loadIncludedJoypixelsAliases() = loadJoypixelsEmojiData(streamAsset("/assets/joypixelsAliases.json")!!)
 
-private data class CategoryData(var char: Char = '\u0020') {
-    fun next() {
+private data class CategoryData(private var char: Char = '\u0020') {
+    fun nextChar(): Char {
         if (char == '\uffee') throw Error("out of characters")
-        else char++
+        else return char++
     }
 }
 
@@ -43,52 +43,65 @@ fun writeChatEmoteData(data: Sequence<ChatEmoteData>, stream: OutputStream, pret
     (if (pretty) jsonPretty else json).encodeToStream(SerializableSequence(data), stream)
 }
 
-fun convertToChatEmoteData(data: Sequence<EmojiData>) = sequence {
-    val categories = mutableMapOf<String, CategoryData>()
-    for (ed in data) ed.run outer@ {
-        val cat = categories.getOrPut(category, ::CategoryData)
-        val aliases = shortNames.map { it.replace('-', '_') }
-        yield(Triple(this, this, ChatEmoteData(name, unified.toString(), aliases, cat.char)))
-        cat.next()
-        if (ed.skinVariations != null) {
-            for ((combo, edv) in ed.skinVariations) edv.run {
-                // Skin tone = 2 chars, `_toneX` = 6 chars
-                val suffix0 = StringBuilder(3 * combo.length)
-                combo.codePoints().forEach {
-                    // See https://www.unicode.org/reports/tr51/#Diversity
-                    if (it !in 0x1F3FB..0x1F3FF) {
-                        throw RuntimeException("invalid skin tone ${it.toChar()} (0x${it.toString(16)}) in variation $combo ($name)")
-                    }
-                    val tone = (it - 0x1F3FB + '1'.code).toChar()
-                    suffix0.append("_tone").append(tone)
-                }
-                val suffix = suffix0.toString()
-                val aliasesV = aliases.map { it + suffix }
-                yield(Triple(this@outer, this, ChatEmoteData(name, unified.toString(), aliasesV, cat.char)))
-                cat.next()
-            }
+data class FlatEmojiData(
+    val main: EmojiData,
+    val variation: BaseEmojiData,
+    val variationCombo: CharSequence? = null,
+) {
+    val category inline get() = main.category
+    val name inline get() = main.name
+    val isMainEmoji inline get() = variationCombo == null
+}
+
+fun Sequence<EmojiData>.flatEmojiData() = sequence {
+    for (mainEmoji in this@flatEmojiData) {
+        yield(FlatEmojiData(mainEmoji, mainEmoji))
+        mainEmoji.skinVariations?.forEach { (variationCombo, variation) ->
+            yield(FlatEmojiData(mainEmoji, variation, variationCombo))
         }
     }
 }
 
-suspend fun writeFonts(
+data class ExpandedEmoteData(
+    val emoji: FlatEmojiData,
+    val emote: ChatEmoteData,
+)
+
+fun Sequence<FlatEmojiData>.expandToEmoteData(aliasMapper: EmojiAliasSource.AliasMapper): Sequence<ExpandedEmoteData> {
+    val categories = mutableMapOf<String, CategoryData>()
+    lateinit var cat: CategoryData
+    return map { data ->
+        if (data.isMainEmoji) cat = categories.getOrPut(data.category, ::CategoryData)
+        data.variation.let { emoji ->
+            val aliases = aliasMapper.aliasesFor(data)
+            ExpandedEmoteData(
+                data,
+                ChatEmoteData(data.name, emoji.unified.toString(), aliases, cat.nextChar())
+            )
+        }
+    }
+}
+
+fun writeFonts(
     writer: PackWriter,
-    data: Sequence<Triple<EmojiData, SimpleEmojiData, ChatEmoteData>>,
-    textureSource: EmojiTextureSource,
+    data: Sequence<ExpandedEmoteData>,
+    textures: TextureLoader.LoadedTextures,
     options: FontAssetOptions,
-    size: Int,
-    clean: Boolean,
     namespace: String,
     fontName: EmojiData.() -> String,
 ) {
-    val textures = textureSource.loader.load(size, clean)
     val fonts = hashMapOf<String, FontWriter>()
+    lateinit var fontWriter: FontWriter
 
-    for ((base, emoji, emote) in data) {
-        val fontWriter = fonts.getOrPut(base.category) {
-            writer.addFont(namespace, base.fontName(), options)
+    for (expanded in data) {
+        val emoji = expanded.emoji
+        val emote = expanded.emote
+        if (emoji.isMainEmoji) {
+            fontWriter = fonts.getOrPut(emoji.category) {
+                writer.addFont(namespace, emoji.main.fontName(), options)
+            }
         }
-        textures[emoji]?.also {
+        textures[emoji.variation]?.let {
             fontWriter.addGlyph(emote.char, it)
         }
     }

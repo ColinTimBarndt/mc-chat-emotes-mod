@@ -43,7 +43,7 @@ val javaVersion = JavaVersion.VERSION_17
 
 javafx {
     version = javaVersion.toString()
-    modules = arrayListOf("javafx.controls", "javafx.fxml")
+    modules = arrayListOf("javafx.controls", "javafx.fxml", "javafx.swing")
 }
 tasks {
     withType<JavaCompile> {

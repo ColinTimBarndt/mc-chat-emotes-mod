@@ -1,4 +1,5 @@
 @file:JvmName("SerializationKt")
+@file:Suppress("NOTHING_TO_INLINE")
 
 package io.github.colintimbarndt.chat_emotes_util.serial
 
@@ -6,17 +7,14 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.encoding.decodeStructure
 import kotlinx.serialization.encoding.encodeCollection
-import kotlinx.serialization.internal.MapLikeSerializer
-import javax.naming.OperationNotSupportedException
+import java.net.URI
 
 @JvmInline
 @Serializable(SequenceSerializer::class)
@@ -40,19 +38,47 @@ internal class SequenceSerializer<T>(val elementSerializer: KSerializer<T>) : KS
 
 }
 
-internal class UnicodeSequenceSerializer : KSerializer<UnicodeSequence> {
+internal class UnicodeSequenceSerializer : KSerializer<String> {
     override val descriptor = PrimitiveSerialDescriptor("UnicodeSequence", PrimitiveKind.STRING)
 
-    override fun deserialize(decoder: Decoder): UnicodeSequence {
-        val sb = StringBuilder(16)
-        val src = decoder.decodeString().splitToSequence('-')
-        src
-            .forEach { sb.appendCodePoint(it.toInt(16)) }
-        return UnicodeSequence(sb.toString())
+    override fun deserialize(decoder: Decoder): String {
+        val str = decoder.decodeString()
+        return UnicodeSequence.parse(str).toString()
     }
 
-    override fun serialize(encoder: Encoder, value: UnicodeSequence) {
+    override fun serialize(encoder: Encoder, value: String) {
         val sb = StringBuilder(value.length * 6)
         sb.codePoints().forEach { sb.append(it.toString(16)) }
     }
+}
+
+@JvmInline
+@Serializable
+value class CharArrayString(
+    @Serializable(CharArrayStringSerializer::class)
+    val delegate: CharArray
+) : CharSequence {
+    constructor(size: Int) : this(CharArray(size))
+    constructor(size: Int, init: (Int) -> Char) : this(CharArray(size, init))
+    val size inline get() = delegate.size
+    override val length: Int get() = size
+    override operator fun get(index: Int) = delegate[index]
+    override fun subSequence(startIndex: Int, endIndex: Int): CharArrayString =
+        CharArrayString(delegate.sliceArray(startIndex until endIndex))
+
+    inline operator fun set(idx: Int, value: Char) = delegate.set(idx, value)
+
+    override fun toString() = delegate.concatToString()
+}
+
+class CharArrayStringSerializer : KSerializer<CharArray> {
+    override val descriptor = String.serializer().descriptor
+    override fun deserialize(decoder: Decoder): CharArray = decoder.decodeString().toCharArray()
+    override fun serialize(encoder: Encoder, value: CharArray) = encoder.encodeString(CharArrayString(value).toString())
+}
+
+class UriSerializer : KSerializer<URI> {
+    override val descriptor = String.serializer().descriptor
+    override fun deserialize(decoder: Decoder): URI = URI(decoder.decodeString())
+    override fun serialize(encoder: Encoder, value: URI) = encoder.encodeString(value.toString())
 }
