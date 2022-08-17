@@ -2,11 +2,9 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.Properties
 
 plugins {
-    val loomVersion: String by System.getProperties()
-    val kotlinVersion: String by System.getProperties()
-    id("fabric-loom") version loomVersion
+    id("fabric-loom")
     id("maven-publish")
-    kotlin("jvm") version kotlinVersion
+    kotlin("jvm")
 }
 
 val side = "server"

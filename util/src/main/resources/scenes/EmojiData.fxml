@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<TabPane prefHeight="300" prefWidth="300" side="RIGHT" tabClosingPolicy="UNAVAILABLE"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+         fx:controller="io.github.colintimbarndt.chat_emotes_util.fx.EmojiDataController">
+    <Tab closable="false" text="Data">
+        <BorderPane>
+            <center>
+                <VBox spacing="4.0">
+                    <Label text="Emoji Aliases">
+                        <graphic>
+                            <ListView fx:id="dataAliasesCombo" prefWidth="180" maxWidth="Infinity" prefHeight="80" minHeight="0"/>
+                        </graphic>
+                    </Label>
+                    <CheckBox fx:id="prettyDataCheck" mnemonicParsing="false" text="Pretty JSON"/>
+                </VBox>
+            </center>
+            <bottom>
+                <ButtonBar prefHeight="40.0" BorderPane.alignment="CENTER">
+                    <buttons>
+                        <Button fx:id="exportDataButton" onAction="#exportData" disable="true" text="Export"/>
+                    </buttons>
+                </ButtonBar>
+            </bottom>
+            <padding>
+                <Insets left="8.0" right="8.0" top="8.0"/>
+            </padding>
+        </BorderPane>
+    </Tab>
+    <Tab text="Assets">
+        <BorderPane>
+            <center>
+                <VBox spacing="4.0">
+                    <Label text="Game Version">
+                        <graphic>
+                            <ChoiceBox fx:id="assetGameVersionChoice" minWidth="100.0"/>
+                        </graphic>
+                    </Label>
+                    <Label text="Textures">
+                        <graphic>
+                            <ChoiceBox fx:id="assetTextureSource" minWidth="100.0"/>
+                        </graphic>
+                    </Label>
+                    <Label text="Resolution">
+                        <graphic>
+                            <ChoiceBox fx:id="assetResolutionChoice" minWidth="70.0"/>
+                        </graphic>
+                    </Label>
+                    <CheckBox fx:id="cleanAssetsCheck" text="Clean (Licensing)" selected="true"/>
+                    <CheckBox fx:id="prettyAssetsCheck" text="Pretty JSON"/>
+                </VBox>
+            </center>
+            <bottom>
+                <ButtonBar prefHeight="40.0" BorderPane.alignment="CENTER">
+                    <buttons>
+                        <Button fx:id="exportAssetsButton" onAction="#exportAssets" disable="true" text="Export"/>
+                    </buttons>
+                </ButtonBar>
+            </bottom>
+            <padding>
+                <Insets left="8.0" right="8.0" top="8.0"/>
+            </padding>
+        </BorderPane>
+    </Tab>
+</TabPane>

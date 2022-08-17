@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.TextFlow?>
+<?import javafx.scene.control.Button?>
+<TabPane fx:id="tabs" prefHeight="320.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+         fx:controller="io.github.colintimbarndt.chat_emotes_util.fx.RootController">
+    <Tab text="About">
+        <BorderPane>
+            <center>
+                <TextFlow fx:id="aboutText" BorderPane.alignment="CENTER"/>
+            </center>
+            <bottom>
+                <VBox spacing="4.0" BorderPane.alignment="CENTER">
+                    <Separator/>
+                    <HBox alignment="TOP_RIGHT">
+                        <Button onAction="#openGithub">
+                            <graphic>
+                                <ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
+                                    <Image url="/assets/GitHub-64.png"/>
+                                </ImageView>
+                            </graphic>
+                        </Button>
+                    </HBox>
+                </VBox>
+            </bottom>
+            <padding>
+                <Insets bottom="8.0" left="8.0" right="8.0" top="8.0"/>
+            </padding>
+        </BorderPane>
+    </Tab>
+</TabPane>

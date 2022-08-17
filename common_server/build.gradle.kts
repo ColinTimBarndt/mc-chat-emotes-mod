@@ -1,11 +1,9 @@
 import java.util.Properties
 
 plugins {
-    val loomVersion: String by System.getProperties()
-    val kotlinVersion: String by System.getProperties()
     id("java")
-    id("fabric-loom") version loomVersion
-    kotlin("jvm") version kotlinVersion
+    id("fabric-loom")
+    kotlin("jvm")
 }
 
 val side = "server"

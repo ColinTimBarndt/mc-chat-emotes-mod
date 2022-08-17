@@ -6,6 +6,9 @@ data class Emote(
     val font: ResourceLocation,
     val character: Char,
     val aliases: Array<String>,
+    /**
+     * ASCII [Emoticons](https://www.unicode.org/reports/tr51/proposed.html#Emoticons)
+     */
     val emoticons: Array<String>,
     val unicodeSequence: String? = null,
 ) {

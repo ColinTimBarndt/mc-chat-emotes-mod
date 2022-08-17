@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.text.TextFlow?>
+<BorderPane prefHeight="313.0" prefWidth="278.0" xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1">
+    <bottom>
+        <VBox prefWidth="357.0" BorderPane.alignment="CENTER">
+            <ProgressBar fx:id="progress" maxWidth="1.7976931348623157E308" prefWidth="200.0"/>
+            <ButtonBar maxWidth="1.7976931348623157E308" prefHeight="40.0">
+                <buttons>
+                    <Button fx:id="exportBtn" text="Export Emoji List"/>
+                </buttons>
+            </ButtonBar>
+        </VBox>
+    </bottom>
+    <center>
+        <VBox prefHeight="200.0" prefWidth="100.0" BorderPane.alignment="CENTER">
+            <padding>
+                <Insets bottom="8" top="8"/>
+            </padding>
+            <GridPane>
+                <columnConstraints>
+                    <ColumnConstraints hgrow="NEVER" minWidth="-Infinity" prefWidth="100.0"/>
+                    <ColumnConstraints hgrow="SOMETIMES"/>
+                </columnConstraints>
+                <rowConstraints>
+                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+                </rowConstraints>
+                <ChoiceBox fx:id="versionSelect" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1"/>
+                <Label prefWidth="286" text="Emoji Version"/>
+                <Label text="Sequences" GridPane.rowIndex="1"/>
+                <CheckBox fx:id="seqCheck" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                <Label text="ZWJ Sequences" GridPane.rowIndex="2"/>
+                <CheckBox fx:id="seqZwjCheck" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+            </GridPane>
+            <ScrollPane fitToWidth="true" maxHeight="300.0" minHeight="0.0" minWidth="0.0" prefHeight="100.0">
+                <TextFlow prefHeight="200.0" prefWidth="200.0">
+                    <Text text="Proin vel augue sed arcu consequat placerat a tempor massa. Nam non varius tortor. Sed consectetur elit lacus, eu finibus lorem dignissim nec. Mauris euismod enim ac odio volutpat, quis scelerisque nunc pretium. Praesent non sagittis ante, dictum commodo nulla. Vivamus libero augue, posuere dapibus metus nec, sagittis laoreet dolor. Praesent eros ex, mattis ut facilisis eget, malesuada nec nisi. Praesent ac molestie lacus, at dapibus dolor. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Vestibulum justo urna, facilisis sit amet tempor sit amet, vulputate sodales eros. Nullam eget rutrum orci. Mauris et orci sit amet erat elementum gravida. Donec at laoreet enim, at lacinia velit. Aenean risus eros, efficitur sed euismod non, tincidunt eu nulla. Fusce dignissim, magna ut sagittis accumsan, odio nisi accumsan ante, vitae venenatis mauris nulla vel lacus. Quisque gravida elit nunc."/>
+                </TextFlow>
+            </ScrollPane>
+        </VBox>
+    </center>
+    <top>
+        <VBox BorderPane.alignment="CENTER">
+            <Text styleClass="h2" text="Unicode Emoji Specification">
+                <font>
+                    <Font size="20.0"/>
+                </font>
+            </Text>
+            <Separator/>
+        </VBox>
+    </top>
+</BorderPane>
