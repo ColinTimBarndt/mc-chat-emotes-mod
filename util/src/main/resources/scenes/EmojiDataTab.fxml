@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.text.TextFlow?>
+<?import javafx.scene.text.Text?>
+<BorderPane prefHeight="400.0" prefWidth="600.0"
+            xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="io.github.colintimbarndt.chat_emotes_util.fx.EmojiDataTabController">
+    <center>
+        <ScrollPane>
+            <VBox spacing="4">
+                <padding>
+                    <Insets topRightBottomLeft="8"/>
+                </padding>
+                <GridPane>
+                    <columnConstraints>
+                        <ColumnConstraints hgrow="NEVER" minWidth="10.0" prefWidth="100.0"/>
+                        <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0"/>
+                    </columnConstraints>
+                    <rowConstraints>
+                        <RowConstraints minHeight="10.0" prefHeight="30.0"/>
+                        <RowConstraints vgrow="NEVER"/>
+                        <RowConstraints fillHeight="false" minHeight="10.0" prefHeight="30.0"/>
+                        <RowConstraints fillHeight="false" minHeight="10.0" prefHeight="30.0"/>
+                    </rowConstraints>
+
+                    <Label text="Emoji Aliases" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                    <ChoiceBox fx:id="aliasesCombo" minWidth="100" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+                    <Separator GridPane.columnSpan="2" GridPane.rowIndex="1"/>
+
+                    <Label text="Font Location" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                    <ChoiceBox fx:id="fontNameType" GridPane.columnIndex="1" GridPane.rowIndex="2" minWidth="150.0"/>
+                    <TextFlow GridPane.columnSpan="2" GridPane.rowIndex="3">
+                        <TextField fx:id="fontNamespace" promptText="placeholder" text="chat_emotes" maxWidth="120"/>
+                        <Text text=":"/>
+                        <TextField fx:id="fontName" promptText="path" maxWidth="100"/>
+                    </TextFlow>
+                </GridPane>
+
+                <CheckBox fx:id="prettyCheck" text="Pretty JSON"/>
+            </VBox>
+        </ScrollPane>
+    </center>
+    <bottom>
+        <ButtonBar prefHeight="40.0" BorderPane.alignment="CENTER">
+            <buttons>
+                <Button fx:id="exportButton" disable="true" onAction="#export" text="Export"/>
+            </buttons>
+        </ButtonBar>
+    </bottom>
+</BorderPane>

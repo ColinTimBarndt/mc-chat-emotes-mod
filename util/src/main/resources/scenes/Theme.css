@@ -1,0 +1,284 @@
+/* THEME */
+
+* {
+    -theme-background: #bdc3c7;
+    -theme-elevated: #ecf0f1;
+    -theme-lowered: #7f8c8d;
+    -theme-lowered-hover: #8f9a9a;
+    -theme-primary: #f1c40f;
+    -theme-primary-bright: #facd48;
+    -theme-secondary: #34495e;
+    -theme-secondary-hover: #4b6a94;
+    -theme-text: #333333;
+    -theme-text-invert: #eeeeee;
+    -theme-input-background: #ffffff;
+
+    -fx-focus-color: -theme-primary;
+    -fx-faint-focus-color: transparent;
+}
+
+.button.icon.github {
+    -fx-background-image: url(/assets/GitHub-64-Light.png);
+}
+
+/* TABS */
+
+.tab-pane {
+    -fx-background-color: -theme-elevated;
+}
+
+.tab {
+    -fx-background-color: -theme-lowered;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-style: none;
+    -fx-border-width: 0;
+    -fx-focus-color: transparent;
+}
+
+.tab:hover {
+    -fx-background-color: -theme-lowered-hover;
+}
+
+.tab-label {
+    -fx-text-fill: -theme-text-invert;
+}
+
+.tab:selected {
+    -fx-background-color: -theme-primary;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+}
+
+.tab-pane:focused .tab:selected {
+    -fx-background-color: -theme-primary-bright;
+}
+
+.tab-pane:focused .tab:selected .focus-indicator {
+    -fx-focus-color: transparent;
+}
+
+.tab:selected .tab-label {
+    -fx-text-fill: -theme-text;
+}
+
+.tab-header-background {
+    -fx-background-color: -theme-background;
+}
+
+.tab-down-button {
+    -fx-background-color: -theme-secondary;
+    -fx-background-insets: 0 0 4 0;
+    -fx-border-width: 0;
+    -fx-background-radius: 0;
+    -fx-padding: 0 3 0 3;
+}
+
+.tab-down-button:hover, .tab-down-button:focused {
+    -fx-background-color: -theme-secondary-hover;
+}
+
+.tab-down-button>.arrow {
+    -fx-background-color: -theme-text-invert;
+    -fx-background-insets: 0;
+}
+
+/* SCROLL */
+
+.scroll-pane {
+    -fx-border-style: none;
+    -fx-background-insets: 0;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+    -fx-fit-to-width: true;
+    -fx-background-color: transparent;
+}
+
+.scroll-pane>.viewport, .scroll-pane>.corner {
+    -fx-background-color: -theme-elevated;
+}
+
+.scroll-bar {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar>.track {
+    -fx-background-color: -theme-background;
+    -fx-border-width: 0;
+    -fx-background-radius: 5em;
+    -fx-background-insets: 3;
+}
+
+.scroll-bar>.thumb {
+    -fx-background-color: -theme-lowered;
+    -fx-background-radius: 5em;
+    -fx-background-insets: 3;
+}
+
+.scroll-bar>.thumb:hover {
+    -fx-background-color: -theme-primary;
+}
+
+.scroll-bar>.thumb:pressed {
+    -fx-background-color: -theme-primary-bright;
+}
+
+.scroll-bar>.increment-button,
+.scroll-bar>.increment-button>.increment-arrow,
+.scroll-bar>.decrement-button,
+.scroll-bar>.decrement-button>.decrement-arrow
+{
+    -fx-padding: 0;
+}
+
+/* BUTTON */
+
+.button-bar {
+    -fx-padding: 8;
+}
+
+.button, .menu-button {
+    -fx-background-color: -theme-secondary;
+    -fx-background-radius: 0;
+    -fx-border-width: 0;
+    -fx-text-fill: -theme-text-invert;
+    -fx-pref-height: 1.8em;
+    -fx-min-height: 1.8em;
+    -fx-max-height: 1.8em;
+    -fx-background-insets: 0;
+}
+
+.button:hover,
+.button:focused,
+.menu-button:hover,
+.menu-button:focused
+{
+    -fx-background-color: -theme-secondary-hover;
+    -fx-background-insets: 0;
+}
+
+.button:pressed,
+.menu-button:pressed
+{
+    -fx-translate-y: 2;
+    -fx-scale-x: .95;
+    -fx-scale-y: .95;
+}
+
+.button.icon {
+    -fx-pref-width: 1.8em;
+    -fx-min-width: 1.8em;
+    -fx-max-width: 1.8em;
+    -fx-background-repeat: no-repeat;
+    -fx-background-position: center;
+    -fx-background-size: auto 16px;
+}
+
+.menu-button>* .arrow {
+    -fx-background-color: -theme-text-invert;
+}
+
+.menu-button>.label {
+    -fx-text-fill: -theme-text-invert;
+}
+
+/* CHOICE BOX */
+
+.choice-box {
+    -fx-background-color: -theme-lowered, -theme-elevated;
+    -fx-background-radius: 0;
+    -fx-border-width: 0;
+    -fx-text-fill: -theme-text;
+    -fx-pref-height: 1.8em;
+    -fx-min-height: 1.8em;
+    -fx-max-height: 1.8em;
+    -fx-background-insets: 0, 0.2em 2em 0.2em 0.2em;
+}
+
+.choice-box .arrow {
+    -fx-background-color: -theme-text-invert;
+}
+
+.choice-box:hover {
+    -fx-background-color: -theme-primary, -theme-elevated;
+}
+
+.choice-box:focused {
+    -fx-background-color: -theme-primary-bright, -theme-input-background;
+}
+
+.choice-box:hover .arrow,
+.choice-box:focused .arrow
+{
+    -fx-background-color: -theme-text;
+}
+
+/* TEXT FIELD */
+
+.text-field {
+    -fx-background-color: -theme-lowered, -theme-elevated;
+    -fx-background-radius: 0;
+    -fx-border-width: 0;
+    -fx-text-fill: -theme-text;
+    -fx-pref-height: 1.8em;
+    -fx-min-height: 1.8em;
+    -fx-max-height: 1.8em;
+    -fx-background-insets: 0, 0.2em;
+}
+
+.text-field:hover {
+    -fx-background-color: -theme-primary, -theme-elevated;
+}
+
+.text-field:focused {
+    -fx-background-color: -theme-primary-bright, -theme-input-background;
+}
+
+/* CHECK BOX */
+
+.check-box .box {
+    -fx-background-color: -theme-lowered, -theme-elevated;
+    -fx-background-radius: 0;
+    -fx-border-width: 0;
+    -fx-text-fill: -theme-text;
+    -fx-pref-height: 1.8em;
+    -fx-min-height: 1.8em;
+    -fx-max-height: 1.8em;
+    -fx-pref-width: 1.8em;
+    -fx-min-width: 1.8em;
+    -fx-max-width: 1.8em;
+    -fx-background-insets: 0, 0.2em;
+    -fx-padding: 0.4em;
+}
+
+.check-box:hover .box {
+    -fx-background-color: -theme-primary, -theme-elevated;
+}
+
+.check-box:focused .box {
+    -fx-background-color: -theme-primary-bright, -theme-input-background;
+}
+
+.check-box .mark {
+    -fx-background-insets: 0;
+    -fx-shape: "M 1 0 L 4 3 L 7 0 L 8 1 L 5 4 L 8 7 L 7 8 L 4 5 L 1 8 L 0 7 L 3 4 L 0 1 Z";
+}
+
+.check-box:selected .mark {
+    -fx-background-color: -theme-text;
+}
+
+/* DECORATIONS */
+
+.separator {
+    -fx-padding: 4 0;
+}
+
+.separator .line {
+    -fx-background-color: -theme-background;
+    -fx-border-width: 0;
+}
+
+.separator:horizontal .line {
+    -fx-padding: 2 0 0 0;
+}

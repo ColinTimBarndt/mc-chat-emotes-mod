@@ -1,8 +1,5 @@
 package io.github.colintimbarndt.chat_emotes_util.fx
 
-import io.github.colintimbarndt.chat_emotes_util.App
-import javafx.event.Event
-import javafx.event.EventHandler
 import javafx.fxml.FXML
 import javafx.scene.control.Tab
 import javafx.scene.control.TabPane
@@ -23,7 +20,7 @@ class RootController {
             val tabNode = Tab(tab.title)
             tabs.tabs.add(tabNode)
             lazyLoadTab(tabNode) {
-                tabNode.content = tab.createBodyNode()
+                content = tab.createBodyNode()
             }
         }
         val aboutSrc = "/assets/about.txt"
@@ -35,12 +32,12 @@ class RootController {
 
     @FXML
     fun openGithub() {
-        App.INSTANCE.hostServices.showDocument("https://github.com/ColinTimBarndt/fabric_chat-emotes#readme")
+        App.INSTANCE.hostServices.showDocument("https://github.com/ColinTimBarndt/mc-chat-emotes-mod#readme")
     }
 
     companion object {
         val tabEntries: MutableList<TabEntry> = mutableListOf(
-            EmojiDataController,
+            EmojiTabController,
         )
     }
 }

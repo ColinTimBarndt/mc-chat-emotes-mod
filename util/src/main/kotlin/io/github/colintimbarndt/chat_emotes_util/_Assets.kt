@@ -3,8 +3,8 @@
 
 package io.github.colintimbarndt.chat_emotes_util
 
+import io.github.colintimbarndt.chat_emotes_util.fx.App
 import java.io.InputStream
-import java.net.URI
 
 internal inline fun streamAsset(name: String): InputStream? = App::class.java.getResourceAsStream(name)
 

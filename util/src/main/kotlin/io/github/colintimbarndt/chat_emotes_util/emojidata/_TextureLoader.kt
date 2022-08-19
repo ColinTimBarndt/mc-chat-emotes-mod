@@ -1,29 +1,59 @@
+@file:JvmName("TextureLoaderKt")
+@file:OptIn(ExperimentalSerializationApi::class)
+
 package io.github.colintimbarndt.chat_emotes_util.emojidata
 
 import io.github.colintimbarndt.chat_emotes_util.LOGGER
-import io.github.colintimbarndt.chat_emotes_util.WebHelper
-import io.github.colintimbarndt.chat_emotes_util.serial.BaseEmojiData
-import io.github.colintimbarndt.chat_emotes_util.serial.UnicodeSequence
+import io.github.colintimbarndt.chat_emotes_util.web.WebHelper
+import io.github.colintimbarndt.chat_emotes_util.model.BaseEmojiData
+import io.github.colintimbarndt.chat_emotes_util.model.UnicodeSequence
+import io.github.colintimbarndt.chat_emotes_util.streamAsset
+import io.github.colintimbarndt.chat_emotes_util.web.FileSourceTemplate
 import javafx.scene.canvas.GraphicsContext
 import javafx.scene.image.Image
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonClassDiscriminator
+import kotlinx.serialization.json.decodeFromStream
 import java.io.Closeable
 import java.io.File
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
-import kotlin.streams.asSequence
 
-fun interface SourceMapper {
-    fun map(resolution: Int, clean: Boolean): WebHelper.FileSource
-
+@JvmInline
+@Serializable
+value class TextureSource(
+    private val template: FileSourceTemplate
+) {
+    fun map(resolution: Int, data: Map<String, String>) = template.resolveTemplate {
+        when (it) {
+            "size" -> resolution.toString()
+            in data -> data[it]!!
+            else -> ""
+        }
+    }
 }
 
-inline operator fun SourceMapper.invoke(resolution: Int, clean: Boolean) = map(resolution, clean).uri
-
-abstract class TextureLoader {
+@Serializable
+@JsonClassDiscriminator("type")
+sealed class TextureLoader {
+    abstract val name: String
     abstract val sizes: IntArray
     abstract val defaultSize: Int
+    abstract val variants: TextureVariants
+    abstract val defaultVariant: String
+
+    override fun toString() = name
+
+    abstract suspend fun load(size: Int, variant: String): LoadedTextures
+
+    protected operator fun TextureSource.get(size: Int, variant: String) =
+        map(size, variants.dataFor(variant))
 
     abstract class LoadedTextures : Closeable, AutoCloseable {
         abstract operator fun get(data: BaseEmojiData): ImageView?
@@ -32,28 +62,19 @@ abstract class TextureLoader {
     data class ImageView(val image: Image, val x: Double, val y: Double, val size: Double) {
         @Suppress("NOTHING_TO_INLINE")
         inline fun drawImage(graphics: GraphicsContext, dx: Double, dy: Double, dSize: Double) {
-            if (image.isBackgroundLoading) {
-                LOGGER.warn("Loading image will be ignored")
-            }
             graphics.drawImage(
-                image,
-                x, y, size, size,
-                dx, dy, dSize, dSize
+                image, x, y, size, size, dx, dy, dSize, dSize
             )
         }
     }
 
-    abstract suspend fun load(size: Int, clean: Boolean): LoadedTextures
-
-    class AtlasTextureLoader internal constructor(
-        private val atlasSource: SourceMapper,
-        override val sizes: IntArray,
-        override val defaultSize: Int,
-        private val padding: Int,
-    ) : TextureLoader() {
-        override suspend fun load(size: Int, clean: Boolean): LoadedAtlasTextures {
+    @Serializable
+    sealed class AbstractSpritesheetTextureLoader : TextureLoader() {
+        protected abstract val padding: Int
+        protected abstract val textures: TextureSource
+        override suspend fun load(size: Int, variant: String): LoadedAtlasTextures {
             val image = withContext(Dispatchers.IO) {
-                Image(WebHelper.getInputStream(atlasSource(size, clean)).body())
+                Image(WebHelper.getInputStream(textures[size, variant].uri).body())
             }
             if (image.exception != null) throw image.exception
             return LoadedAtlasTextures(image, size.toDouble())
@@ -72,34 +93,40 @@ abstract class TextureLoader {
 
             override fun close() {}
         }
-
-        companion object {
-            /**
-             * See [Emoji Data README](https://github.com/iamcal/emoji-data#understanding-the-spritesheets)
-             */
-            const val EMOJI_DATA_PADDING = 1
-        }
     }
 
-    sealed class ZipArchiveTextureLoader<K>(
-        private val atlasSource: SourceMapper,
+    @Serializable
+    @SerialName("spritesheet")
+    class SpritesheetTextureLoader(
+        override val name: String,
+        override val padding: Int = 0,
+        override val textures: TextureSource,
         override val sizes: IntArray,
-        override val defaultSize: Int,
-    ) : TextureLoader() {
+        @SerialName("default_size") override val defaultSize: Int,
+        override val variants: TextureVariants,
+        @SerialName("default_variant") override val defaultVariant: String,
+    ) : AbstractSpritesheetTextureLoader()
+
+    @Serializable
+    sealed class ZipArchiveTextureLoader<K> : TextureLoader() {
+        protected abstract val textures: TextureSource
         abstract fun getKey(data: BaseEmojiData): K
         abstract fun buildIndex(file: ZipFile): Map<K, ZipEntry>
-        private val cache = hashMapOf<Pair<Int, Boolean>, File>()
-        override suspend fun load(size: Int, clean: Boolean): LoadedTextures {
+
+        @Transient
+        private val cache = hashMapOf<Pair<Int, String>, File>()
+
+        override suspend fun load(size: Int, variant: String): LoadedTextures {
             val zipFile = withContext(Dispatchers.IO) {
-                val file = cache[size to clean] ?: run {
+                val file = cache[size to variant] ?: run {
                     // Download
-                    val uri = atlasSource(size, clean)
+                    val uri = textures[size, variant].uri
                     LOGGER.info("Downloading texture archive from {}", uri)
                     val sourceZip = WebHelper.getInputStream(uri)
                     val temp = File.createTempFile("ChatEmotesUtil", ".zip")
                     temp.deleteOnExit()
                     sourceZip.body().transferTo(temp.outputStream())
-                    cache[size to clean] = temp
+                    cache[size to variant] = temp
                     temp
                 }
                 ZipFile(file, ZipFile.OPEN_READ)
@@ -126,10 +153,16 @@ abstract class TextureLoader {
         }
     }
 
-    class UnifiedZipArchiveTextureLoader internal constructor(atlasSource: SourceMapper, sizes: IntArray, defaultSize: Int) :
-        ZipArchiveTextureLoader<UnicodeSequence>(
-            atlasSource, sizes, defaultSize
-        ) {
+    @Serializable
+    @SerialName("unified-zip")
+    class UnifiedZipArchiveTextureLoader internal constructor(
+        override val name: String,
+        override val textures: TextureSource,
+        override val sizes: IntArray,
+        @SerialName("default_size") override val defaultSize: Int,
+        override val variants: TextureVariants,
+        @SerialName("default_variant") override val defaultVariant: String,
+    ) : ZipArchiveTextureLoader<UnicodeSequence>() {
         override fun getKey(data: BaseEmojiData) = data.unified
 
         override fun buildIndex(file: ZipFile): Map<UnicodeSequence, ZipEntry> {
@@ -152,33 +185,8 @@ abstract class TextureLoader {
     }
 
     companion object {
-        private val resEmojiData = intArrayOf(16, 20, 32, 64)
-        private val resOpenMoji = intArrayOf(72, 618)
-        private val resJoypixels = intArrayOf(32, 64, 128)
-
-        fun atlas(sizes: IntArray, defaultSize: Int, padding: Int = 0, source: SourceMapper) =
-            AtlasTextureLoader(source, sizes, defaultSize, padding)
-
-        fun unifiedZipArchive(sizes: IntArray, defaultSize: Int, source: SourceMapper) =
-            UnifiedZipArchiveTextureLoader(source, sizes, defaultSize)
-
-        fun emojiDataSpritesheet(vendor: String) =
-            atlas(resEmojiData, 32, AtlasTextureLoader.EMOJI_DATA_PADDING) { size, clean ->
-                WebHelper.GithubFile(
-                    "iamcal", "emoji-data", "master",
-                    if (clean) "sheets-clean/sheet_${vendor}_${size}_clean.png"
-                    else "sheet_${vendor}_${size}.png"
-                )
-            }
-
-        fun openmoji(variant: String = "color") =
-            unifiedZipArchive(resOpenMoji, 72) { size, _ ->
-                WebHelper.GithubRelease(
-                    "hfg-gmuend",
-                    "openmoji",
-                    "latest",
-                    "openmoji-${size}x${size}-${variant}.zip"
-                )
-            }
+        val EMOJI_TEXTURES: List<TextureLoader> by lazy {
+            Json.decodeFromStream(streamAsset("/assets/emojiTextures.json")!!)
+        }
     }
 }

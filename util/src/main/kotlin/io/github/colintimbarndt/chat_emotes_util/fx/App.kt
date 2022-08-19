@@ -1,4 +1,4 @@
-package io.github.colintimbarndt.chat_emotes_util
+package io.github.colintimbarndt.chat_emotes_util.fx
 
 import javafx.application.Application
 import javafx.fxml.FXMLLoader
@@ -22,7 +22,7 @@ class App : Application() {
         val root: Parent = FXMLLoader.load(App::class.java.getResource("/scenes/Root.fxml"))
         stage.scene = Scene(root)
         stage.title = "Chat Emotes Utility"
-        stage.minWidth = 320.0
+        stage.minWidth = 450.0
         stage.minHeight = 200.0
         stage.show()
     }

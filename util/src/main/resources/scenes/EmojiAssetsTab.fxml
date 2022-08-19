@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.text.TextFlow?>
+<BorderPane prefHeight="400.0" prefWidth="600.0"
+            xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="io.github.colintimbarndt.chat_emotes_util.fx.EmojiAssetsTabController">
+    <center>
+        <ScrollPane>
+            <VBox spacing="4">
+                <padding>
+                    <Insets topRightBottomLeft="8"/>
+                </padding>
+                <GridPane>
+                    <columnConstraints>
+                        <ColumnConstraints hgrow="NEVER" minWidth="10.0" prefWidth="100.0"/>
+                        <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0"/>
+                    </columnConstraints>
+                    <rowConstraints>
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+                        <RowConstraints vgrow="NEVER"/>
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+                        <RowConstraints fillHeight="false" minHeight="10.0" prefHeight="30.0"
+                                        vgrow="SOMETIMES"/>
+                        <RowConstraints fillHeight="false" minHeight="10.0" prefHeight="30.0"
+                                        vgrow="SOMETIMES"/>
+                        <RowConstraints fillHeight="false" minHeight="10.0" prefHeight="30.0"
+                                        vgrow="SOMETIMES"/>
+                    </rowConstraints>
+                    <ChoiceBox fx:id="gameVersionChoice" minWidth="100.0" GridPane.columnIndex="1"/>
+                    <Label text="Game Version"/>
+                    <ChoiceBox fx:id="textureSource" minWidth="100.0" GridPane.columnIndex="1"
+                               GridPane.rowIndex="1"/>
+
+                    <Label text="Textures" GridPane.rowIndex="1"/>
+                    <ChoiceBox fx:id="resolutionChoice" minWidth="70.0" GridPane.columnIndex="1"
+                               GridPane.rowIndex="2"/>
+
+                    <Label text="Resolution" GridPane.rowIndex="2"/>
+                    <ChoiceBox fx:id="variantChoice" minWidth="100.0" GridPane.columnIndex="1"
+                               GridPane.rowIndex="3"/>
+
+                    <Label text="Variant" GridPane.rowIndex="3"/>
+
+                    <Separator GridPane.columnSpan="2" GridPane.rowIndex="4"/>
+
+                    <Label text="Font Atlas Location" GridPane.columnSpan="2"
+                           GridPane.rowIndex="5"/>
+                    <TextFlow GridPane.columnSpan="2" GridPane.rowIndex="6">
+                        <TextField fx:id="atlasNamespace" promptText="namespace" text="chat_emotes" maxWidth="120"/>
+                        <Text text=":"/>
+                        <TextField fx:id="atlasName" promptText="path" text="emoji" maxWidth="100"/>
+                    </TextFlow>
+
+                    <Label text="Font Location" GridPane.columnIndex="0" GridPane.rowIndex="7"/>
+                    <ChoiceBox fx:id="fontNameType" GridPane.columnIndex="1" GridPane.rowIndex="7" minWidth="150.0"/>
+                    <TextFlow GridPane.columnSpan="2" GridPane.rowIndex="8">
+                        <TextField fx:id="fontNamespace" promptText="placeholder" text="chat_emotes" maxWidth="120"/>
+                        <Text text=":"/>
+                        <TextField fx:id="fontName" promptText="path" maxWidth="100"/>
+                    </TextFlow>
+                </GridPane>
+
+                <CheckBox fx:id="prettyCheck" text="Pretty JSON"/>
+            </VBox>
+        </ScrollPane>
+    </center>
+    <bottom>
+        <ButtonBar>
+            <buttons>
+                <Button fx:id="exportButton" disable="true" onAction="#export" text="Export"/>
+                <MenuButton text="Export">
+                    <items>
+                        <Menu text="Resource Pack">
+                            <MenuItem text="Zipped (full)"/>
+                            <MenuItem text="Folder (full)"/>
+                            <MenuItem text="Folder (append)"/>
+                        </Menu>
+                    </items>
+                </MenuButton>
+            </buttons>
+        </ButtonBar>
+    </bottom>
+</BorderPane>

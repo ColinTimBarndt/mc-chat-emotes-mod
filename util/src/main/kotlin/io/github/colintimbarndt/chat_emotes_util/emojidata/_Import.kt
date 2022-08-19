@@ -1,18 +1,20 @@
 @file:JvmName("ImportKt")
+@file:Suppress("NOTHING_TO_INLINE")
 
 package io.github.colintimbarndt.chat_emotes_util.emojidata
 
-import io.github.colintimbarndt.chat_emotes_util.WebHelper
 import io.github.colintimbarndt.chat_emotes_util.lazyStringAsset
+import io.github.colintimbarndt.chat_emotes_util.model.*
 import io.github.colintimbarndt.chat_emotes_util.serial.*
 import io.github.colintimbarndt.chat_emotes_util.streamAsset
+import io.github.colintimbarndt.chat_emotes_util.web.GithubFile
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.*
 import java.io.InputStream
 import java.io.OutputStream
 
-val latestEmojiFile = WebHelper.GithubFile("iamcal", "emoji-data", "master", "emoji.json")
-val latestJoypixelsAliasesFile = WebHelper.GithubFile("joypixels", "emoji-toolkit", "master", "emoji_strategy.json")
+val latestEmojiFile = GithubFile("iamcal", "emoji-data", "master", "emoji.json")
+val latestJoypixelsAliasesFile = GithubFile("joypixels", "emoji-toolkit", "master", "emoji_strategy.json")
 
 val includedEmojiCommitHash by lazyStringAsset("/assets/emoji.json.hash")
 
@@ -67,44 +69,66 @@ data class ExpandedEmoteData(
     val emote: ChatEmoteData,
 )
 
-fun Sequence<FlatEmojiData>.expandToEmoteData(aliasMapper: EmojiAliasSource.AliasMapper): Sequence<ExpandedEmoteData> {
-    val categories = mutableMapOf<String, CategoryData>()
-    lateinit var cat: CategoryData
+private inline fun Sequence<FlatEmojiData>.expand(
+    aliasMapper: EmojiAliasSource.AliasMapper,
+    font: ResourceKey
+): Sequence<ExpandedEmoteData> {
+    var char = ' '
     return map { data ->
-        if (data.isMainEmoji) cat = categories.getOrPut(data.category, ::CategoryData)
-        data.variation.let { emoji ->
-            val aliases = aliasMapper.aliasesFor(data)
-            ExpandedEmoteData(
-                data,
-                ChatEmoteData(data.name, emoji.unified.toString(), aliases, cat.nextChar())
+        if (char == '\u0000') throw IndexOutOfBoundsException("Out of characters")
+        val emoji = data.variation
+        val aliases = aliasMapper.aliasesFor(data)
+        ExpandedEmoteData(
+            data,
+            ChatEmoteData(
+                name = data.name,
+                emoji = emoji.unified.toString(),
+                aliases = aliases,
+                char = char++,
+                font = font
             )
+        )
+    }
+}
+
+@Suppress("UNCHECKED_CAST")
+fun <G : Any> Sequence<FlatEmojiData>.expandToEmoteData(
+    aliasMapper: EmojiAliasSource.AliasMapper,
+    fontNamespace: String,
+    fontName: FontNaming<G>
+): Sequence<Pair<ResourceKey, Sequence<ExpandedEmoteData>>> {
+    return if (fontName.groupKeyType == Unit::class) {
+        // No grouping needed, can stream
+        val key = Unit as G
+        val font = ResourceKey(fontNamespace, fontName.getFontName(key))
+        sequenceOf(font to expand(aliasMapper, font))
+    } else {
+        groupBy(fontName::getGroupKey).asSequence().map { (key, list) ->
+            val font = ResourceKey(fontNamespace, fontName.getFontName(key))
+            font to list.asSequence().expand(aliasMapper, font)
         }
     }
 }
 
 fun writeFonts(
-    writer: PackWriter,
-    data: Sequence<ExpandedEmoteData>,
+    writer: ZipPackWriter,
+    groupedData: Sequence<Pair<ResourceKey, Sequence<ExpandedEmoteData>>>,
     textures: TextureLoader.LoadedTextures,
     options: FontAssetOptions,
-    namespace: String,
-    fontName: EmojiData.() -> String,
+    sharedNamespace: String,
+    sharedName: String,
 ) {
-    val fonts = hashMapOf<String, FontWriter>()
-    lateinit var fontWriter: FontWriter
-
-    for (expanded in data) {
-        val emoji = expanded.emoji
-        val emote = expanded.emote
-        if (emoji.isMainEmoji) {
-            fontWriter = fonts.getOrPut(emoji.category) {
-                writer.addFont(namespace, emoji.main.fontName(), options)
+    writer.addFonts(sharedNamespace, sharedName, options) {
+        for ((font, members) in groupedData) {
+            addFont(font.namespace, font.path) {
+                for (member in members) {
+                    val emoji = member.emoji
+                    val emote = member.emote
+                    textures[emoji.variation]?.let {
+                        addGlyph(emote.char, it)
+                    }
+                }
             }
         }
-        textures[emoji.variation]?.let {
-            fontWriter.addGlyph(emote.char, it)
-        }
     }
-
-    fonts.values.forEach(FontWriter::close)
 }
