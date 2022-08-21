@@ -33,6 +33,6 @@ class FolderPackWriter(private val folder: File) : PackWriter {
     companion object : PackWriterFactory {
         override val label = "Pack Folder"
         override val fileType = FileType.Folder
-        override fun of(file: File) = FolderPackWriter(file)
+        override fun create(file: File) = FolderPackWriter(file)
     }
 }

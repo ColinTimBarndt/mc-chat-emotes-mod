@@ -28,7 +28,7 @@ class EmojiAssetsTab : BorderPane() {
     lateinit var exportButton: MenuButton
 
     @FXML
-    lateinit var gameVersionChoice: ChoiceBox<PackFormat>
+    lateinit var gameVersionChoice: GameVersionChoiceBox
 
     @FXML
     lateinit var textureSource: ChoiceBox<TextureLoader>
@@ -80,9 +80,6 @@ class EmojiAssetsTab : BorderPane() {
     @FXML
     @Suppress("UNUSED")
     fun initialize() {
-        gameVersionChoice.items.setAll(PackFormat.values)
-        gameVersionChoice.value = PackFormat.values.last()
-
         emojiSourcesForm.nameChoice.value = EmojiNameSource.Raw
         emojiSourcesForm.aliasesChoice.value = EmojiAliasSource.None
 
@@ -174,7 +171,7 @@ class EmojiAssetsTab : BorderPane() {
                 atlasSize = max(1, atlasSize.value),
                 json = json
             )
-            writerFactory.of(file).use { packWriter ->
+            writerFactory.create(file).use { packWriter ->
                 if (packMetaCheck.isSelected) {
                     packWriter.addMetadata(json) {
                         pack.format = gameVersionChoice.value.resourceFormat

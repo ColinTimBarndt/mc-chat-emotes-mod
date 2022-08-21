@@ -26,7 +26,7 @@ interface PackWriter : Closeable, AutoCloseable {
 
 interface PackWriterFactory : Labeled {
     val fileType: FileType
-    fun of(file: File): PackWriter
+    fun create(file: File): PackWriter
 }
 
 inline fun PackWriter.addFile(name: String, write: (OutputStream) -> Unit) {

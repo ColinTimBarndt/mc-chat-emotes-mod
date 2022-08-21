@@ -56,7 +56,7 @@ class ZipPackWriter private constructor(
     companion object : PackWriterFactory {
         override val label: String = "Zipped Pack"
         override val fileType: FileType = FileType.Zip
-        override fun of(file: File) = of(file.outputStream())
+        override fun create(file: File) = of(file.outputStream())
         fun of(stream: OutputStream) = ZipPackWriter(ZipOutputStream(stream))
     }
 }
