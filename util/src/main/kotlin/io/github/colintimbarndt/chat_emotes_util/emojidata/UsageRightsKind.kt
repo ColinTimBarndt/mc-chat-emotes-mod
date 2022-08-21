@@ -4,7 +4,8 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-enum class LicenseKind(private val label: String) {
+@Suppress("UNUSED")
+enum class UsageRightsKind(private val label: String) {
     @SerialName("personal use")
     PersonalUse("Personal Use License"),
     @SerialName("creative commons")
@@ -16,7 +17,7 @@ enum class LicenseKind(private val label: String) {
     @Transient
     Multiple("Multiple Licenses"),
     @Transient
-    Copyright("Copyright")
+    Copyright("Copyright"),
     ;
 
     override fun toString() = label

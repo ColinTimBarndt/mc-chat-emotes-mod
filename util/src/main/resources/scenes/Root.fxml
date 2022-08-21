@@ -1,38 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import io.github.colintimbarndt.chat_emotes_util.fx.LazyTab?>
+<?import io.github.colintimbarndt.chat_emotes_util.fx.LazyTextFlow?>
+<?import io.github.colintimbarndt.chat_emotes_util.fx.LinkButton?>
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.ButtonBar?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
-<?import javafx.scene.image.Image?>
-<?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.text.TextFlow?>
-<?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.control.ButtonBar?>
-<TabPane fx:id="tabs" prefHeight="320.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE"
+<?import javafx.scene.layout.BorderPane?>
+<?import io.github.colintimbarndt.chat_emotes_util.fx.AttributionsList?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.Separator?>
+<TabPane prefHeight="320.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE"
          xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
-         fx:controller="io.github.colintimbarndt.chat_emotes_util.fx.RootController"
-         stylesheets="@/scenes/Theme.css">
+         stylesheets="/scenes/Theme.css">
     <Tab text="About">
         <BorderPane>
             <center>
                 <ScrollPane>
-                    <TextFlow fx:id="aboutText" BorderPane.alignment="CENTER">
+                    <VBox>
                         <padding>
                             <Insets topRightBottomLeft="8"/>
                         </padding>
-                    </TextFlow>
+                        <LazyTextFlow source="/assets/about.txt"/>
+                        <Separator/>
+                        <AttributionsList/>
+                    </VBox>
                 </ScrollPane>
             </center>
             <bottom>
                 <ButtonBar>
                     <buttons>
-                        <Button onAction="#openGithub" styleClass="icon, github"/>
+                        <LinkButton uri="https://github.com/ColinTimBarndt/mc-chat-emotes-mod#readme"
+                                    styleClass="icon, github"/>
                     </buttons>
                 </ButtonBar>
             </bottom>
         </BorderPane>
     </Tab>
+    <LazyTab text="Emoji" fxml="/scenes/EmojiTab.fxml"/>
 </TabPane>

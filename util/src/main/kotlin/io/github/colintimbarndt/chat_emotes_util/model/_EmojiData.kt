@@ -42,6 +42,7 @@ data class EmojiData(
     val shortName: String,
     @SerialName("short_names")
     val shortNames: ArrayList<String>,
+    val texts: List<String> = emptyList(),
     val category: String,
     val subcategory: String? = null,
     @SerialName("sort_order")

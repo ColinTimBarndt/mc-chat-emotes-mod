@@ -61,7 +61,7 @@
                   "owner": "googlefonts",
                   "repo": "noto-emoji",
                   "branch": "main",
-                  "path": "LICENSE"
+                  "path": "fonts/LICENSE"
                 }
               },
               {
@@ -84,7 +84,7 @@
               "owner": "googlefonts",
               "repo": "noto-emoji",
               "branch": "main",
-              "path": "LICENSE"
+              "path": "fonts/LICENSE"
             }
           }
         },
@@ -105,7 +105,7 @@
                   "owner": "twitter",
                   "repo": "twemoji",
                   "branch": "master",
-                  "path": "LICENSE_GRAPHICS"
+                  "path": "LICENSE-GRAPHICS"
                 }
               },
               {
@@ -128,7 +128,7 @@
               "owner": "twitter",
               "repo": "twemoji",
               "branch": "master",
-              "path": "LICENSE_GRAPHICS"
+              "path": "LICENSE-GRAPHICS"
             }
           }
         },

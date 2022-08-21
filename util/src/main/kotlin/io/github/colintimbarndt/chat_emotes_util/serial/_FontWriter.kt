@@ -26,7 +26,7 @@ data class FontAssetOptions(
 )
 
 class FontTextureWriter(
-    internal val packWriter: ZipPackWriter,
+    internal val packWriter: PackWriter,
     internal val options: FontAssetOptions,
     private val namespace: String,
     private val name: String,
@@ -125,7 +125,7 @@ class FontGlyphWriter(
     private var firstGlyph = true
 
     constructor(
-        packWriter: ZipPackWriter, options: FontAssetOptions, namespace: String, name: String
+        packWriter: PackWriter, options: FontAssetOptions, namespace: String, name: String
     ) : this(FontTextureWriter(packWriter, options, namespace, name), namespace, name)
 
     init {
@@ -145,22 +145,22 @@ class FontGlyphWriter(
         if (closed) return
         closed = true
         textureWriter.locked = false
-        textureWriter.packWriter.addJsonFile("assets/$namespace/fonts/$name.json", metadata, textureWriter.options.json)
+        textureWriter.packWriter.addJsonFile("assets/$namespace/font/$name.json", metadata, textureWriter.options.json)
     }
 }
 
-inline fun ZipPackWriter.addFont(namespace: String, name: String, options: FontAssetOptions): FontGlyphWriter =
+inline fun PackWriter.addFont(namespace: String, name: String, options: FontAssetOptions): FontGlyphWriter =
     FontGlyphWriter(this, options, namespace, name)
 
-inline fun ZipPackWriter.addFont(
+inline fun PackWriter.addFont(
     namespace: String, name: String, options: FontAssetOptions, block: FontGlyphWriter.() -> Unit
 ) = addFont(namespace, name, options).use(block)
 
-inline fun ZipPackWriter.addFonts(
+inline fun PackWriter.addFonts(
     namespace: String, name: String, options: FontAssetOptions
 ) = FontTextureWriter(this, options, namespace, name)
 
-inline fun ZipPackWriter.addFonts(
+inline fun PackWriter.addFonts(
     namespace: String, name: String, options: FontAssetOptions, block: FontTextureWriter.() -> Unit
 ) = addFonts(namespace, name, options).use(block)
 

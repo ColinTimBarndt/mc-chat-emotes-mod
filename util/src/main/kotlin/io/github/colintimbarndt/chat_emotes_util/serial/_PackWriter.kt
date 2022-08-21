@@ -15,6 +15,13 @@ import java.io.OutputStream
 
 interface PackWriter : Closeable, AutoCloseable {
     fun addFile(name: String): OutputStream
+
+    companion object {
+        val values = arrayListOf(
+            ZipPackWriter,
+            FolderPackWriter
+        )
+    }
 }
 
 interface PackWriterFactory : Labeled {

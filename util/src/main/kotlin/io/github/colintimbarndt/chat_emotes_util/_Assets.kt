@@ -5,9 +5,8 @@ package io.github.colintimbarndt.chat_emotes_util
 
 import io.github.colintimbarndt.chat_emotes_util.fx.App
 import java.io.InputStream
+import java.net.URL
 
-internal inline fun streamAsset(name: String): InputStream? = App::class.java.getResourceAsStream(name)
+inline fun getAsset(name: String): URL? = App::class.java.getResource(name)
 
-internal fun lazyStringAsset(name: String) = lazy {
-    streamAsset(name)!!.reader().use { it.readText() }
-}
+inline fun streamAsset(name: String): InputStream? = App::class.java.getResourceAsStream(name)

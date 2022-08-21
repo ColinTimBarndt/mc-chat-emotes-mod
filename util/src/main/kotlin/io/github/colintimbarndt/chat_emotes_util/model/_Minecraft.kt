@@ -31,7 +31,7 @@ internal class FontMetadata(
     internal sealed class Provider
 
     @Serializable
-    @SerialName("minecraft:bitmap")
+    @SerialName("bitmap")
     internal data class BitmapProvider(
         val file: String,
         val chars: Array<CharArrayString>,

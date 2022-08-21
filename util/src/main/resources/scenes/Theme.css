@@ -18,7 +18,13 @@
 }
 
 .button.icon.github {
-    -fx-background-image: url(/assets/GitHub-64-Light.png);
+    -fx-background-image: url(/assets/img/GitHub-64-Light.png);
+}
+
+/* TEXT */
+
+.h2 {
+    -fx-font-size: 2em;
 }
 
 /* TABS */
@@ -234,6 +240,10 @@
     -fx-background-color: -theme-primary-bright, -theme-input-background;
 }
 
+.text-field.numeric {
+    -fx-alignment: baseline-right;
+}
+
 /* CHECK BOX */
 
 .check-box .box {
@@ -281,4 +291,8 @@
 
 .separator:horizontal .line {
     -fx-padding: 2 0 0 0;
+}
+
+.progress-indicator {
+    -fx-accent: -theme-primary;
 }

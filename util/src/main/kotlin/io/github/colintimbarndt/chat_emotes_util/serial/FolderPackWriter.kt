@@ -22,7 +22,7 @@ class FolderPackWriter(private val folder: File) : PackWriter {
         val target = folder.resolve(name)
         if (!target.path.startsWith(folder.path)) throw IOException("File not in directory")
         if (target.exists() && !target.isFile) throw IOException("Target is not a file")
-        if (!(target.exists() || target.mkdirs())) throw IOException("Cannot create directories")
+        if (!(target.exists())) target.parentFile.mkdirs()
         return target.outputStream()
     }
 

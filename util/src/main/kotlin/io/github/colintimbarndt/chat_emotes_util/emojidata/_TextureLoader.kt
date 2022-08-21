@@ -4,11 +4,13 @@
 package io.github.colintimbarndt.chat_emotes_util.emojidata
 
 import io.github.colintimbarndt.chat_emotes_util.LOGGER
-import io.github.colintimbarndt.chat_emotes_util.web.WebHelper
+import io.github.colintimbarndt.chat_emotes_util.Labeled
 import io.github.colintimbarndt.chat_emotes_util.model.BaseEmojiData
 import io.github.colintimbarndt.chat_emotes_util.model.UnicodeSequence
 import io.github.colintimbarndt.chat_emotes_util.streamAsset
 import io.github.colintimbarndt.chat_emotes_util.web.FileSourceTemplate
+import io.github.colintimbarndt.chat_emotes_util.web.WebHelper.STANDARD_CACHE_TIME
+import io.github.colintimbarndt.chat_emotes_util.web.getInputStreamSync
 import javafx.scene.canvas.GraphicsContext
 import javafx.scene.image.Image
 import kotlinx.coroutines.Dispatchers
@@ -41,14 +43,11 @@ value class TextureSource(
 
 @Serializable
 @JsonClassDiscriminator("type")
-sealed class TextureLoader {
-    abstract val name: String
+sealed class TextureLoader : Labeled {
     abstract val sizes: IntArray
     abstract val defaultSize: Int
     abstract val variants: TextureVariants
     abstract val defaultVariant: String
-
-    override fun toString() = name
 
     abstract suspend fun load(size: Int, variant: String): LoadedTextures
 
@@ -74,7 +73,7 @@ sealed class TextureLoader {
         protected abstract val textures: TextureSource
         override suspend fun load(size: Int, variant: String): LoadedAtlasTextures {
             val image = withContext(Dispatchers.IO) {
-                Image(WebHelper.getInputStream(textures[size, variant].uri).body())
+                Image(textures[size, variant].getInputStreamSync(STANDARD_CACHE_TIME).result)
             }
             if (image.exception != null) throw image.exception
             return LoadedAtlasTextures(image, size.toDouble())
@@ -97,8 +96,10 @@ sealed class TextureLoader {
 
     @Serializable
     @SerialName("spritesheet")
+    @Suppress("UNUSED")
     class SpritesheetTextureLoader(
-        override val name: String,
+        @SerialName("name")
+        override val label: String,
         override val padding: Int = 0,
         override val textures: TextureSource,
         override val sizes: IntArray,
@@ -120,12 +121,11 @@ sealed class TextureLoader {
             val zipFile = withContext(Dispatchers.IO) {
                 val file = cache[size to variant] ?: run {
                     // Download
-                    val uri = textures[size, variant].uri
-                    LOGGER.info("Downloading texture archive from {}", uri)
-                    val sourceZip = WebHelper.getInputStream(uri)
+                    val src = textures[size, variant]
                     val temp = File.createTempFile("ChatEmotesUtil", ".zip")
                     temp.deleteOnExit()
-                    sourceZip.body().transferTo(temp.outputStream())
+                    val sourceZip = src.getInputStreamSync(STANDARD_CACHE_TIME)
+                    sourceZip.result.transferTo(temp.outputStream())
                     cache[size to variant] = temp
                     temp
                 }
@@ -155,8 +155,10 @@ sealed class TextureLoader {
 
     @Serializable
     @SerialName("unified-zip")
+    @Suppress("UNUSED")
     class UnifiedZipArchiveTextureLoader internal constructor(
-        override val name: String,
+        @SerialName("name")
+        override val label: String,
         override val textures: TextureSource,
         override val sizes: IntArray,
         @SerialName("default_size") override val defaultSize: Int,

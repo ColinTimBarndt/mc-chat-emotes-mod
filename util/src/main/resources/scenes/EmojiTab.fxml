@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.*?>
-<TabPane prefHeight="480.0" prefWidth="430.0" side="RIGHT" tabClosingPolicy="UNAVAILABLE"
-         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
-         fx:controller="io.github.colintimbarndt.chat_emotes_util.fx.EmojiTabController">
-    <Tab text="Data" fx:id="dataTab"/>
-    <Tab text="Assets" fx:id="assetsTab"/>
+<?import io.github.colintimbarndt.chat_emotes_util.fx.*?>
+
+<TabPane prefHeight="480" prefWidth="430" side="RIGHT" tabClosingPolicy="UNAVAILABLE"
+         xmlns="http://javafx.com/javafx/17">
+    <LazyTab text="Data" component="io.github.colintimbarndt.chat_emotes_util.fx.EmojiDataTab"/>
+    <LazyTab text="Assets" component="io.github.colintimbarndt.chat_emotes_util.fx.EmojiAssetsTab"/>
 </TabPane>

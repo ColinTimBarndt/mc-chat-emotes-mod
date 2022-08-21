@@ -1,7 +1,7 @@
 package io.github.colintimbarndt.chat_emotes_util.serial
 
-enum class FileType {
+enum class FileType(val extension: String = "") {
     Folder,
-    Json,
-    Zip
+    Json(".json"),
+    Zip(".zip"),
 }

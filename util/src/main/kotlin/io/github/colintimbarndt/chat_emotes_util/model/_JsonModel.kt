@@ -2,39 +2,26 @@
 
 package io.github.colintimbarndt.chat_emotes_util.model
 
+import io.github.colintimbarndt.chat_emotes_util.web.FileSource
 import kotlinx.serialization.Serializable
 
-// TODO: Move into common library
 @Serializable
 data class ChatEmoteData(
-    val name: String,
+    val name: String?,
+    val category: String?,
     val emoji: String,
-    val aliases: Array<String>,
+    val aliases: List<String> = emptyList(),
+    val emoticons: List<String> = emptyList(),
     val char: Char,
     val font: ResourceKey,
-) {
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
+)
 
-        other as ChatEmoteData
-
-        if (name != other.name) return false
-        if (emoji != other.emoji) return false
-        if (!aliases.contentEquals(other.aliases)) return false
-        if (char != other.char) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = name.hashCode()
-        result = 31 * result + emoji.hashCode()
-        result = 31 * result + aliases.contentHashCode()
-        result = 31 * result + char.hashCode()
-        return result
-    }
-}
+@Serializable
+data class Attribution(
+    val name: String,
+    val source: FileSource,
+    val license: FileSource? = null,
+)
 
 /**
  * A unicode sequence is encoded as its hexadecimal unicode code points joined by hyphens (or any other delimiter)

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.layout.HBox?>
+<fx:root type="Tab" xmlns="http://javafx.com/javafx/17"
+         xmlns:fx="http://javafx.com/fxml/1">
+    <HBox alignment="CENTER">
+        <ProgressIndicator prefWidth="100" prefHeight="100" HBox.hgrow="NEVER"/>
+    </HBox>
+</fx:root>
