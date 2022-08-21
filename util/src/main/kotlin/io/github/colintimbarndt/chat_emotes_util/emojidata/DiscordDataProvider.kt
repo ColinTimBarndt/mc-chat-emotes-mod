@@ -11,11 +11,12 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 import java.net.URI
+import java.util.concurrent.ConcurrentHashMap
 
 object DiscordDataProvider {
     private val json = Json { ignoreUnknownKeys = true }
 
-    private val cache = HashMap<Version, DiscordEmojiMap>(Version.values().size)
+    private val cache = ConcurrentHashMap<Version, DiscordEmojiMap>(Version.values().size)
 
     suspend inline fun load(version: Version) = withContext(Dispatchers.IO) {
         loadSync(version)
@@ -31,8 +32,9 @@ object DiscordDataProvider {
 
     @OptIn(ExperimentalSerializationApi::class)
     private fun loadSync(source: URI) =
-        json.decodeFromStream<DiscordEmojiList>(WebHelper.getInputStreamSync(source, STANDARD_CACHE_TIME).result)
-            .toMap()
+        WebHelper.getInputStreamSync(source, STANDARD_CACHE_TIME).result.use {
+            json.decodeFromStream<DiscordEmojiList>(it)
+        }.toMap()
 
     enum class Version(internal val source: URI) {
         Stable(URI("https://emzi0767.gl-pages.emzi0767.dev/discord-emoji/discordEmojiMap.min.json")),

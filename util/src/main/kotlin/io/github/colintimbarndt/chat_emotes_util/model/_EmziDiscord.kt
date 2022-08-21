@@ -7,9 +7,8 @@ import kotlinx.serialization.Serializable
 
 typealias DiscordEmojiMap = Map<UnicodeSequence, DiscordEmojiList.Definition>
 
-@JvmInline
 @Serializable
-value class DiscordEmojiList(
+data class DiscordEmojiList(
     val emojiDefinitions: ArrayList<Definition>,
 ) {
     @Serializable

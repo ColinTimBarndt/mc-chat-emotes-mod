@@ -64,6 +64,7 @@ object WebHelper {
             if (System.currentTimeMillis() - mfEntry.lastUpdate < cacheTime) {
                 val cached = cacheDir.resolve(mfEntry.file)
                 if (cached.isFile) {
+                    LOGGER.info("Loading from cache $uri")
                     return handler.readFromCache(cached)
                 } else {
                     cacheManifest.remove(uri.toASCIIString())
@@ -85,6 +86,7 @@ object WebHelper {
             if (cached.isFile) {
                 mfEntry.lastUpdate = System.currentTimeMillis()
                 saveCacheManifest()
+                LOGGER.info("Loading from cache $uri")
                 return handler.readFromCache(cached)
             } else {
                 cacheManifest.remove(uri.toASCIIString())
@@ -155,7 +157,7 @@ object WebHelper {
     private class CachedInputStreamBodyHandler :
         CachedBodyHandler<InputStream>(HttpResponse.BodyHandlers.ofInputStream()) {
         override fun readFromCache(cacheFile: File) = FetchResult(
-            cacheFile.inputStream(), cacheFile.length(), 304
+            cacheFile.inputStream().buffered(), cacheFile.length(), 304
         )
 
         override fun writeToCache(result: HttpResponse<InputStream>, cacheFile: File) {
