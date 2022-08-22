@@ -20,6 +20,8 @@ import java.util.concurrent.Executor
 abstract class EmoteDataLoaderBase {
     var loadedEmoteData: List<EmoteDataBundle> = emptyList()
         protected set
+    var maxCombinedEmote: Int = 0
+        protected set
     protected val resourceLoaderIdentifier = ResourceLocation(NAMESPACE, "emotes")
     protected abstract val serverMod: ChatEmotesServerModBase
 
@@ -53,6 +55,7 @@ abstract class EmoteDataLoaderBase {
         profiler: ProfilerFiller,
         executor: Executor
     ): CompletableFuture<Void> {
+        maxCombinedEmote = data.maxOfOrNull(EmoteDataBundle::maxCombinedEmote) ?: 1
         loadedEmoteData = Collections.unmodifiableList(data)
         LOGGER.info("Loaded {} emotes", data.asSequence().map { it.size }.sum())
         return CompletableFuture.completedFuture(null)
