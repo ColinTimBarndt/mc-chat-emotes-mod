@@ -1,6 +1,7 @@
 package io.github.colintimbarndt.chat_emotes_util.fx
 
 import io.github.colintimbarndt.chat_emotes_util.LOGGER
+import io.github.colintimbarndt.chat_emotes_util.PackLangProvider
 import io.github.colintimbarndt.chat_emotes_util.emojidata.*
 import io.github.colintimbarndt.chat_emotes_util.serial.*
 import io.github.colintimbarndt.chat_emotes_util.web.WebHelper.STANDARD_CACHE_TIME
@@ -12,7 +13,10 @@ import javafx.scene.control.*
 import javafx.scene.layout.BorderPane
 import javafx.scene.layout.Pane
 import javafx.scene.text.Text
-import kotlinx.coroutines.*
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -107,21 +111,16 @@ class EmojiAssetsTab : BorderPane() {
                 val prevRes = resolutionChoice.value
                 resolutionChoice.items.setAll(*source.sizes.toTypedArray())
                 // If possible, don't change the resolution setting
-                resolutionChoice.value = if (
-                    prevRes == null
-                    || source.sizes.binarySearch(prevRes) < 0
-                ) source.defaultSize
-                else prevRes
+                resolutionChoice.value =
+                    if (prevRes == null || source.sizes.binarySearch(prevRes) < 0) source.defaultSize
+                    else prevRes
             }
             run {
                 // Update variant settings
                 val prevVar = variantChoice.value
                 variantChoice.items.setAll(source.variants.values)
                 // If possible, don't change the variant setting
-                variantChoice.value = if (
-                    prevVar == null
-                    || prevVar !in source.variants.values
-                ) source.defaultVariant
+                variantChoice.value = if (prevVar == null || prevVar !in source.variants.values) source.defaultVariant
                 else prevVar
             }
         }
@@ -145,26 +144,21 @@ class EmojiAssetsTab : BorderPane() {
         val textureSrc = textureSource.value!!
         val shortName = textureSrc.variants.shortNameFor(variant) ?: variant
         val file = writerFactory.fileType.showSaveDialog(
-            title = "Save Resource Pack",
-            fileName = shortName + writerFactory.fileType.extension
+            title = "Save Resource Pack", fileName = shortName + writerFactory.fileType.extension
         )
         if (file == null) {
             exportButton.isDisable = false
             return
         }
-        val job = GlobalScope.launch {
+        val job = GlobalScope.launch(Dispatchers.IO) {
             LOGGER.info("Writing resource pack to {}", file.absolutePath)
             val sourceSize = resolutionChoice.value!!
-            val data = EmojiDataProvider.loadSequence()
-                .flatEmojiData()
-                .expandToEmoteData(
-                    emojiSourcesForm.loadSources(),
-                    fontNamespace.text,
-                    fontNameType.value.create(fontName.text)
-                )
-            val textures = withContext(Dispatchers.IO) {
-                textureSrc.load(sourceSize, variant)
-            }
+            val data = EmojiDataProvider.loadSequence().flatEmojiData().expandToEmoteData(
+                emojiSourcesForm.loadSources(),
+                fontNamespace.text,
+                fontNameType.value.create(fontName.text)
+            )
+            val textures = textureSrc.load(sourceSize, variant)
             val json = if (prettyCheck.isSelected) Json { prettyPrint = true } else Json
             val glyphOptions = FontAssetOptions(
                 glyphSize = targetResolution.value,
@@ -197,7 +191,14 @@ class EmojiAssetsTab : BorderPane() {
                         lock.countDown()
                     }
                 }
-                withContext(Dispatchers.IO) { lock.await() }
+                lock.await()
+
+                // Languages
+                PackLangProvider.load().forEach { (lang, data) ->
+                    packWriter.addJsonFile("assets/chat_emotes/lang/$lang.json", data, json)
+                }
+
+                // Licenses
                 val rights = textureSrc.variants.usageRightsFor(variant)
                 for ((i, source) in rights.sources().withIndex()) {
                     val uri = source.uri
@@ -205,8 +206,7 @@ class EmojiAssetsTab : BorderPane() {
                     val ext = path.substringAfterLast('.', "txt")
                     val idx = if (i > 0) i.toString() else ""
                     packWriter.addFile(
-                        "LICENSE$idx-$shortName.$ext",
-                        source.getInputStream(STANDARD_CACHE_TIME).result
+                        "LICENSE$idx-$shortName.$ext", source.getInputStream(STANDARD_CACHE_TIME).result
                     )
                 }
             }

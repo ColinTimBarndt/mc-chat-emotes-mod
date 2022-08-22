@@ -23,6 +23,8 @@ data class Attribution(
     val license: FileSource? = null,
 )
 
+typealias PackLang = Map<String, String>
+
 /**
  * A unicode sequence is encoded as its hexadecimal unicode code points joined by hyphens (or any other delimiter)
  */

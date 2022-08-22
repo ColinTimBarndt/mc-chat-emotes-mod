@@ -1,0 +1,12 @@
+{
+  "en_us": {
+    "%1$s%784014$s": "%2$s",
+    "commands.chat_emotes.reload.success": "Reloaded config!",
+    "commands.chat_emotes.reload.failure": "Reload failed"
+  },
+  "de_de": {
+    "%1$s%784014$s": "%2$s",
+    "commands.chat_emotes.reload.success": "Konfiguration neu geladen!",
+    "commands.chat_emotes.reload.failure": "Neuladen fehlgeschlagen"
+  }
+}
