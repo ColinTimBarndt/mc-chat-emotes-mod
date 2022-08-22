@@ -1,3 +1,5 @@
+@file:JvmName("PermissionsKt")
+
 package io.github.colintimbarndt.chat_emotes.common.permissions
 
 import com.google.common.base.Predicate
@@ -13,11 +15,6 @@ const val COMMAND_PERMISSION = "$NAMESPACE.command"
  * Permission required to use the `reload` subcommand
  */
 const val RELOAD_COMMAND_PERMISSION = "$COMMAND_PERMISSION.reload"
-
-/**
- * Permission required to use the `export <pack name>` subcommand
- */
-const val EXPORT_COMMAND_PERMISSION = "$COMMAND_PERMISSION.export"
 
 /**
  * Permission required to use emotes

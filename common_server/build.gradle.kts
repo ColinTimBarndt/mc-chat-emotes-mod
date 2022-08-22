@@ -4,6 +4,7 @@ plugins {
     id("java")
     id("fabric-loom")
     kotlin("jvm")
+    kotlin("plugin.serialization")
 }
 
 val side = "server"
@@ -25,6 +26,8 @@ dependencies {
 
     minecraft("com.mojang", "minecraft", config.getProperty("minecraft_version"))
     mappings(loom.officialMojangMappings())
+
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0-RC")
 }
 
 tasks {

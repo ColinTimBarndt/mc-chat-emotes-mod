@@ -1,5 +1,6 @@
 package io.github.colintimbarndt.chat_emotes.common
 
+import io.github.colintimbarndt.chat_emotes.common.data.ChatEmote
 import io.github.colintimbarndt.chat_emotes.common.data.EmoteDataLoaderBase
 import io.github.colintimbarndt.chat_emotes.common.util.ComponentUtils.fallback
 import io.github.colintimbarndt.chat_emotes.common.util.ComponentUtils.plusAssign
@@ -22,43 +23,42 @@ abstract class EmoteDecoratorBase : ChatDecorator {
         return CompletableFuture.completedFuture(replaceEmotes(message))
     }
 
-    private fun emoteForAlias(alias: String): io.github.colintimbarndt.chat_emotes.common.data.Emote? {
+    private fun emoteForAlias(alias: String): ChatEmote? {
         val dataList = emoteDataLoader.loadedEmoteData
         for (data in dataList) {
-            val result = data.emoteForAlias(alias)
+            val result = data.emotesByAlias[alias]
             if (result != null) return result
         }
         return null
     }
 
-    private fun emoteForEmoticon(emoticon: String): io.github.colintimbarndt.chat_emotes.common.data.Emote? {
+    private fun emoteForEmoticon(emoticon: String): ChatEmote? {
         val dataList = emoteDataLoader.loadedEmoteData
         for (data in dataList) {
-            val result = data.emoteForEmoticon(emoticon)
+            val result = data.emotesByEmoticon[emoticon]
             if (result != null) return result
         }
         return null
     }
 
-    private fun createEmoteComponent(emote: io.github.colintimbarndt.chat_emotes.common.data.Emote, fallback: String): Component {
+    private fun createEmoteComponent(emote: ChatEmote, fallback: String): Component {
         var emoteStyle = FONT_BASE_STYLE.withFont(emote.font)
-        if (emote.aliases.isNotEmpty()) {
+        if (emote.aliasWithColons != null) {
             emoteStyle = emoteStyle.withHoverEvent(
                 HoverEvent(
                     HoverEvent.Action.SHOW_TEXT,
-                    literal(":" + emote.aliases[0] + ":")
-                        .setStyle(HIGHLIGHT_STYLE)
+                    literal(emote.aliasWithColons).setStyle(HIGHLIGHT_STYLE)
                 )
             )
         }
         return fallback(
             literal(fallback),
-            literal(emote.character.toString())
+            literal(emote.char.toString())
                 .setStyle(emoteStyle)
         )
     }
 
-    private fun replaceEmotes(comp: Component, filter: (io.github.colintimbarndt.chat_emotes.common.data.Emote) -> Boolean = { true }): Component {
+    private fun replaceEmotes(comp: Component, filter: (ChatEmote) -> Boolean = { true }): Component {
         val content = comp.contents
         var mut: MutableComponent? = null
         if (content is LiteralContents) {

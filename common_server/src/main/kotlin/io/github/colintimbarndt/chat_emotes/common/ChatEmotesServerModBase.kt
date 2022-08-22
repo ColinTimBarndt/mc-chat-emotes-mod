@@ -1,10 +1,10 @@
 package io.github.colintimbarndt.chat_emotes.common
 
-import com.google.gson.JsonParseException
 import io.github.colintimbarndt.chat_emotes.common.config.ChatEmotesConfig
 import io.github.colintimbarndt.chat_emotes.common.data.EmoteDataLoaderBase
 import io.github.colintimbarndt.chat_emotes.common.permissions.PermissionsAdapter
 import io.github.colintimbarndt.chat_emotes.common.permissions.VanillaPermissionsAdapter
+import kotlinx.serialization.SerializationException
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
@@ -36,13 +36,12 @@ abstract class ChatEmotesServerModBase {
         }
         return try {
             config = ChatEmotesConfig.load(FileInputStream(file))
-            LOGGER.info("Loaded config")
             true
         } catch (ex: IOException) {
             config = ChatEmotesConfig()
             LOGGER.error("Unable to read config", ex)
             false
-        } catch (ex: JsonParseException) {
+        } catch (ex: SerializationException) {
             config = ChatEmotesConfig()
             LOGGER.error("Unable to parse config", ex)
             false
