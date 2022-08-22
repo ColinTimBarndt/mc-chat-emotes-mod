@@ -76,6 +76,9 @@ class EmojiAssetsTab : BorderPane() {
     lateinit var packMetaCheck: CheckBox
 
     @FXML
+    lateinit var packLangCheck: CheckBox
+
+    @FXML
     lateinit var textureRightsText: Text
 
     @FXML
@@ -194,8 +197,10 @@ class EmojiAssetsTab : BorderPane() {
                 lock.await()
 
                 // Languages
-                PackLangProvider.load().forEach { (lang, data) ->
-                    packWriter.addJsonFile("assets/chat_emotes/lang/$lang.json", data, json)
+                if (packLangCheck.isSelected) {
+                    PackLangProvider.load().forEach { (lang, data) ->
+                        packWriter.addJsonFile("assets/chat_emotes/lang/$lang.json", data, json)
+                    }
                 }
 
                 // Licenses

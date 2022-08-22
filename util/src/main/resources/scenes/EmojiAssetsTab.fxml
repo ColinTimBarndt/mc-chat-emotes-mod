@@ -81,6 +81,7 @@
                 <FlowPane hgap="4">
                     <CheckBox fx:id="prettyCheck" text="Pretty JSON"/>
                     <CheckBox fx:id="packMetaCheck" text="pack.mcmeta" selected="true"/>
+                    <CheckBox fx:id="packLangCheck" text="Mod Languages" selected="true"/>
                 </FlowPane>
 
                 <TextFlow>
