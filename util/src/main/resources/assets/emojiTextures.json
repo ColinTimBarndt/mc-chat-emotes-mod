@@ -1,0 +1,233 @@
+[
+  {
+    "name": "Emoji Data",
+    "type": "spritesheet",
+    "default_size": 32,
+    "default_variant": "Twemoji (Twitter) (clean)",
+    "sizes": [
+      16,
+      20,
+      32,
+      64
+    ],
+    "padding": 1,
+    "variants": {
+      "rights_type": "individual",
+      "values": {
+        "Apple (fallback)": {
+          "short_name": "Apple",
+          "data": {
+            "vendor": "apple",
+            "variant": "fallback"
+          },
+          "rights": {
+            "type": "multiple",
+            "values": [
+              {
+                "type": "copyright",
+                "holder": "Apple"
+              },
+              {
+                "type": "unknown"
+              }
+            ]
+          }
+        },
+        "Apple (clean)": {
+          "short_name": "Apple",
+          "data": {
+            "vendor": "apple",
+            "variant": "clean"
+          },
+          "rights": {
+            "type": "copyright",
+            "holder": "Apple"
+          }
+        },
+        "Noto (Google) (fallback)": {
+          "short_name": "Noto",
+          "data": {
+            "vendor": "google",
+            "variant": "fallback"
+          },
+          "rights": {
+            "type": "multiple",
+            "values": [
+              {
+                "type": "license",
+                "kind": "open font license",
+                "source": {
+                  "type": "github:file",
+                  "owner": "googlefonts",
+                  "repo": "noto-emoji",
+                  "branch": "main",
+                  "path": "fonts/LICENSE"
+                }
+              },
+              {
+                "type": "unknown"
+              }
+            ]
+          }
+        },
+        "Noto (Google) (clean)": {
+          "short_name": "Noto",
+          "data": {
+            "vendor": "google",
+            "variant": "clean"
+          },
+          "rights": {
+            "type": "license",
+            "kind": "open font license",
+            "source": {
+              "type": "github:file",
+              "owner": "googlefonts",
+              "repo": "noto-emoji",
+              "branch": "main",
+              "path": "fonts/LICENSE"
+            }
+          }
+        },
+        "Twemoji (Twitter) (fallback)": {
+          "short_name": "Twemoji",
+          "data": {
+            "vendor": "twitter",
+            "variant": "fallback"
+          },
+          "rights": {
+            "type": "multiple",
+            "values": [
+              {
+                "type": "license",
+                "kind": "creative commons",
+                "source": {
+                  "type": "github:file",
+                  "owner": "twitter",
+                  "repo": "twemoji",
+                  "branch": "master",
+                  "path": "LICENSE-GRAPHICS"
+                }
+              },
+              {
+                "type": "unknown"
+              }
+            ]
+          }
+        },
+        "Twemoji (Twitter) (clean)": {
+          "short_name": "Twemoji",
+          "data": {
+            "vendor": "twitter",
+            "variant": "clean"
+          },
+          "rights": {
+            "type": "license",
+            "kind": "creative commons",
+            "source": {
+              "type": "github:file",
+              "owner": "twitter",
+              "repo": "twemoji",
+              "branch": "master",
+              "path": "LICENSE-GRAPHICS"
+            }
+          }
+        },
+        "Facebook (fallback)": {
+          "short_name": "Facebook",
+          "data": {
+            "vendor": "facebook",
+            "variant": "fallback"
+          },
+          "rights": {
+            "type": "multiple",
+            "values": [
+              {
+                "type": "copyright",
+                "holder": "Facebook"
+              },
+              {
+                "type": "unknown"
+              }
+            ]
+          }
+        },
+        "Facebook (clean)": {
+          "short_name": "Facebook",
+          "data": {
+            "vendor": "facebook",
+            "variant": "clean"
+          },
+          "rights": {
+            "type": "copyright",
+            "holder": "Facebook"
+          }
+        }
+      }
+    },
+    "textures": {
+      "type": "match",
+      "on": "{variant}",
+      "cases": {
+        "fallback": {
+          "type": "github:file",
+          "owner": "iamcal",
+          "repo": "emoji-data",
+          "branch": "master",
+          "path": "sheet_{vendor}_{size}.png"
+        },
+        "clean": {
+          "type": "github:file",
+          "owner": "iamcal",
+          "repo": "emoji-data",
+          "branch": "master",
+          "path": "sheets-clean/sheet_{vendor}_{size}_clean.png"
+        }
+      }
+    }
+  },
+  {
+    "name": "OpenMoji",
+    "type": "unified-zip",
+    "default_size": 72,
+    "default_variant": "Color",
+    "sizes": [
+      72,
+      618
+    ],
+    "variants": {
+      "rights_type": "equal",
+      "variants": [
+        {
+          "name": "Color",
+          "data": {
+            "variant": "color"
+          }
+        },
+        {
+          "name": "Black",
+          "data": {
+            "variant": "black"
+          }
+        }
+      ],
+      "rights": {
+        "type": "license",
+        "kind": "creative commons",
+        "source": {
+          "type": "github:file",
+          "owner": "hfg-gmuend",
+          "repo": "openmoji",
+          "branch": "master",
+          "path": "LICENSE.txt"
+        }
+      }
+    },
+    "textures": {
+      "type": "github:release",
+      "owner": "hfg-gmuend",
+      "repo": "openmoji",
+      "tag": "latest",
+      "file": "openmoji-{size}x{size}-{variant}.zip"
+    }
+  }
+]

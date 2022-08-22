@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import io.github.colintimbarndt.chat_emotes_util.fx.*?>
+
+<TabPane prefHeight="480" prefWidth="430" side="RIGHT" tabClosingPolicy="UNAVAILABLE"
+         xmlns="http://javafx.com/javafx/17">
+    <LazyTab text="Data" component="io.github.colintimbarndt.chat_emotes_util.fx.EmojiDataTab"/>
+    <LazyTab text="Assets" component="io.github.colintimbarndt.chat_emotes_util.fx.EmojiAssetsTab"/>
+</TabPane>

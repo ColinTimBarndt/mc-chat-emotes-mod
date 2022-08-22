@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "id": "chat_emotes",
-  "version": "${version}",
+  "id": "$mod_id",
+  "version": "$version",
 
   "name": "Chat Emotes",
   "description": "Server-Side chat emotes for Minecraft",

@@ -5,7 +5,7 @@ package io.github.colintimbarndt.chat_emotes.mixin
 
 import com.google.common.collect.ImmutableMap
 import io.github.colintimbarndt.chat_emotes.ChatEmotesServerMod
-import io.github.colintimbarndt.chat_emotes.common.MOD_ID
+import io.github.colintimbarndt.chat_emotes.common.NAMESPACE
 import io.github.colintimbarndt.chat_emotes.common.mixin.attemptLoadModLanguage
 import net.minecraft.locale.Language
 import org.spongepowered.asm.mixin.Mixin
@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture
 import java.util.function.BiConsumer
 
-private const val langPath = "/assets/$MOD_ID/lang/en_us.json"
+private const val langPath = "/assets/$NAMESPACE/lang/en_us.json"
 
 @Inject(
     method = ["loadDefault"],

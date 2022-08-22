@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.text.TextFlow?>
+<?import javafx.scene.text.Text?>
+<?import io.github.colintimbarndt.chat_emotes_util.fx.EmojiSourcesForm?>
+<?import io.github.colintimbarndt.chat_emotes_util.fx.GameVersionChoiceBox?>
+<fx:root type="BorderPane" prefHeight="400.0" prefWidth="600.0"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <center>
+        <ScrollPane>
+            <VBox spacing="4">
+                <padding>
+                    <Insets topRightBottomLeft="8"/>
+                </padding>
+                <GridPane>
+                    <columnConstraints>
+                        <ColumnConstraints hgrow="NEVER" minWidth="10.0" prefWidth="100.0"/>
+                        <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0"/>
+                    </columnConstraints>
+                    <rowConstraints>
+                        <RowConstraints minHeight="10" prefHeight="30" vgrow="SOMETIMES"/>
+                        <RowConstraints vgrow="NEVER"/>
+                        <RowConstraints minHeight="10.0" vgrow="ALWAYS"/>
+                        <RowConstraints vgrow="NEVER"/>
+                        <RowConstraints minHeight="10" prefHeight="30" vgrow="SOMETIMES" fillHeight="false"/>
+                        <RowConstraints minHeight="10" prefHeight="30" vgrow="SOMETIMES" fillHeight="false"/>
+                    </rowConstraints>
+
+                    <Label text="Game Version"/>
+                    <GameVersionChoiceBox fx:id="gameVersionChoice" minWidth="100" GridPane.columnIndex="1"/>
+
+                    <Separator GridPane.columnSpan="2" GridPane.rowIndex="1"/>
+
+                    <EmojiSourcesForm fx:id="emojiSourcesForm" GridPane.columnSpan="2" GridPane.rowIndex="2"/>
+
+                    <Separator GridPane.columnSpan="2" GridPane.rowIndex="3"/>
+
+                    <Label text="Font Location" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+                    <ChoiceBox fx:id="fontNameType" GridPane.columnIndex="1" GridPane.rowIndex="4" minWidth="150.0"/>
+                    <TextFlow GridPane.columnSpan="2" GridPane.rowIndex="5">
+                        <TextField fx:id="fontNamespace" promptText="placeholder" text="chat_emotes" maxWidth="120"/>
+                        <Text text=":"/>
+                        <TextField fx:id="fontName" promptText="path"/>
+                    </TextFlow>
+                </GridPane>
+
+                <FlowPane hgap="4">
+                    <CheckBox fx:id="prettyCheck" text="Pretty JSON"/>
+                    <CheckBox fx:id="packMetaCheck" text="pack.mcmeta" selected="true"/>
+                </FlowPane>
+            </VBox>
+        </ScrollPane>
+    </center>
+    <bottom>
+        <ButtonBar>
+            <buttons>
+                <MenuButton fx:id="exportButton" text="Export">
+                    <items>
+                        <MenuItem onAction="#export" text="JSON File"/>
+                    </items>
+                </MenuButton>
+            </buttons>
+        </ButtonBar>
+    </bottom>
+</fx:root>

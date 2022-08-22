@@ -1,4 +1,4 @@
-<img alt="Smiley Emoji" src="./fabric_mod_server/src/main/resources/assets/chat_emotes/icon.png" width="100" align="right" />
+<img alt="Smiley Emoji" src="./shared_resources/assets/chat_emotes/icon.png" width="100" align="right" />
 
 ![Build Status (1.19)](https://img.shields.io/github/workflow/status/ColinTimBarndt/fabric_chat-emotes/build/1.19?label=build%201.19)
 

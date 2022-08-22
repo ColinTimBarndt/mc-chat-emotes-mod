@@ -1,0 +1,1 @@
+This utility can generate resources to be used with the ChatEmotes Minecraft Mod.

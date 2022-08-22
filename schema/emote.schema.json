@@ -11,27 +11,49 @@
       "description": "https://minecraft.fandom.com/wiki/Resource_location"
     }
   },
-  "type": "object",
-  "required": [
-    "type"
-  ],
-  "properties": {
-    "type": {
-      "$ref": "#/$defs/resource_location"
-    }
-  },
-  "allOf": [
-    {
-      "if": {
-        "properties": {
-          "type": {
-            "const": "chat_emotes:unicode"
-          }
+  "type": "array",
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "char",
+      "font"
+    ],
+    "properties": {
+      "name": {
+        "description": "Descriptive name of this Emote",
+        "type": "string"
+      },
+      "category": {
+        "description": "Descriptive category name of this Emote",
+        "type": "string"
+      },
+      "emoji": {
+        "description": "Emoji representing this Emote",
+        "type": "string"
+      },
+      "aliases": {
+        "description": "Aliases for this Emote without colons (used as `:alias:`)",
+        "type": "array",
+        "items": {
+          "type": "string"
         }
       },
-      "then": {
-        "$ref": "./types/unicode.schema.json"
+      "emoticons": {
+        "description": "Emoticons for this Emote (example: `:)`)",
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "char": {
+        "description": "UTF-16 character that has the texture of this Emoji",
+        "type": "string"
+      },
+      "font": {
+        "description": "Minecraft font in which the UTF-16 has the desired texture",
+        "$ref": "#/$defs/resource_location"
       }
     }
-  ]
+  }
 }

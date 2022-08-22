@@ -1,0 +1,39 @@
+[
+  {
+    "name": "Emoji Data",
+    "source": {
+      "type": "github:repo",
+      "owner": "iamcal",
+      "repo": "emoji-data"
+    },
+    "license": {
+      "type": "github:file",
+      "owner": "iamcal",
+      "repo": "emoji-data",
+      "branch": "master",
+      "path": "LICENSE"
+    }
+  },
+  {
+    "name": "Joypixels Emoji Toolkit",
+    "source": {
+      "type": "github:repo",
+      "owner": "joypixels",
+      "repo": "emoji-toolkit"
+    },
+    "license": {
+      "type": "github:file",
+      "owner": "joypixels",
+      "repo": "emoji-toolkit",
+      "branch": "master",
+      "path": "LICENSE.md"
+    }
+  },
+  {
+    "name": "Discord Emoji Map",
+    "source": {
+      "type": "uri",
+      "value": "https://emzi0767.gl-pages.emzi0767.dev/discord-emoji/"
+    }
+  }
+]

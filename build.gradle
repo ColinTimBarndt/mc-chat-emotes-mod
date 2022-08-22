@@ -1,0 +1,10 @@
+def rootDir = projectDir
+
+subprojects {
+    apply plugin: "java"
+    sourceSets {
+        main {
+            resources.srcDirs += "${rootDir}/shared_resources"
+        }
+    }
+}

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import io.github.colintimbarndt.chat_emotes_util.fx.EmojiSourcesForm?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import io.github.colintimbarndt.chat_emotes_util.fx.GameVersionChoiceBox?>
+<fx:root type="BorderPane" prefHeight="400.0" prefWidth="600.0"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <center>
+        <ScrollPane>
+            <VBox spacing="4">
+                <padding>
+                    <Insets topRightBottomLeft="8"/>
+                </padding>
+                <GridPane hgap="4">
+                    <columnConstraints>
+                        <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
+                        <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0"/>
+                    </columnConstraints>
+                    <rowConstraints>
+                        <RowConstraints minHeight="10" prefHeight="30" vgrow="SOMETIMES"/>
+                        <RowConstraints minHeight="10" prefHeight="30" vgrow="SOMETIMES"/>
+                        <RowConstraints minHeight="10" prefHeight="30" vgrow="SOMETIMES"/>
+                        <RowConstraints minHeight="10" prefHeight="30" vgrow="SOMETIMES"/>
+                        <RowConstraints vgrow="NEVER"/>
+                        <RowConstraints minHeight="10" vgrow="ALWAYS"/>
+                        <RowConstraints vgrow="NEVER"/>
+                        <RowConstraints minHeight="10" prefHeight="30" vgrow="SOMETIMES"/>
+                        <RowConstraints minHeight="10" prefHeight="30" vgrow="SOMETIMES"/>
+                        <RowConstraints minHeight="10" prefHeight="30" vgrow="SOMETIMES"/>
+                        <RowConstraints minHeight="10" prefHeight="30" vgrow="SOMETIMES" fillHeight="false"/>
+                        <RowConstraints minHeight="10" prefHeight="30" vgrow="SOMETIMES"/>
+                        <RowConstraints minHeight="10" prefHeight="30" vgrow="SOMETIMES" fillHeight="false"/>
+                    </rowConstraints>
+                    <GameVersionChoiceBox fx:id="gameVersionChoice" minWidth="100" GridPane.columnIndex="1"/>
+                    <Label text="Game Version"/>
+                    <ChoiceBox fx:id="textureSource" minWidth="100" GridPane.columnIndex="1"
+                               GridPane.rowIndex="1"/>
+
+                    <Label text="Textures" GridPane.rowIndex="1"/>
+                    <ChoiceBox fx:id="resolutionChoice" minWidth="70" GridPane.columnIndex="1"
+                               GridPane.rowIndex="2"/>
+
+                    <Label text="Source Resolution" GridPane.rowIndex="2"/>
+                    <ChoiceBox fx:id="variantChoice" minWidth="100" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+
+                    <Label text="Variant" GridPane.rowIndex="3"/>
+
+                    <Separator GridPane.columnSpan="2" GridPane.rowIndex="4"/>
+
+                    <EmojiSourcesForm fx:id="emojiSourcesForm" GridPane.columnSpan="2" GridPane.rowIndex="5"
+                                      disableName="true" disableAliases="true" disableEmoticons="true"/>
+
+                    <Separator GridPane.columnSpan="2" GridPane.rowIndex="6"/>
+
+                    <Label text="Target Resolution" GridPane.columnIndex="0" GridPane.rowIndex="7"/>
+                    <TextField fx:id="targetResolutionText" maxWidth="70" GridPane.columnIndex="1"
+                               GridPane.rowIndex="7"/>
+
+                    <Label text="Font Atlas Size" GridPane.columnIndex="0" GridPane.rowIndex="8"/>
+                    <TextField fx:id="atlasSizeText" maxWidth="70" GridPane.columnIndex="1" GridPane.rowIndex="8"/>
+
+                    <Label text="Font Atlas Location" GridPane.columnSpan="2" GridPane.rowIndex="9"/>
+                    <TextFlow GridPane.columnSpan="2" GridPane.rowIndex="10">
+                        <TextField fx:id="atlasNamespace" promptText="namespace" text="chat_emotes" maxWidth="120"/>
+                        <Text text=":"/>
+                        <TextField fx:id="atlasName" promptText="path"/>
+                    </TextFlow>
+
+                    <Label text="Font Location" GridPane.columnIndex="0" GridPane.rowIndex="11"/>
+                    <ChoiceBox fx:id="fontNameType" GridPane.columnIndex="1" GridPane.rowIndex="11" minWidth="150.0"/>
+                    <TextFlow GridPane.columnSpan="2" GridPane.rowIndex="12">
+                        <TextField fx:id="fontNamespace" promptText="placeholder" text="chat_emotes" maxWidth="120"/>
+                        <Text text=":"/>
+                        <TextField fx:id="fontName" promptText="path"/>
+                    </TextFlow>
+                </GridPane>
+
+                <FlowPane hgap="4">
+                    <CheckBox fx:id="prettyCheck" text="Pretty JSON"/>
+                    <CheckBox fx:id="packMetaCheck" text="pack.mcmeta" selected="true"/>
+                    <CheckBox fx:id="packLangCheck" text="Mod Languages" selected="true"/>
+                </FlowPane>
+
+                <TextFlow>
+                    <Text fx:id="textureRightsText"/>
+                </TextFlow>
+
+                <FlowPane fx:id="rightSourceButtons" hgap="4" vgap="4"/>
+            </VBox>
+        </ScrollPane>
+    </center>
+    <bottom>
+        <ButtonBar>
+            <buttons>
+                <MenuButton fx:id="exportButton" text="Export"/>
+            </buttons>
+        </ButtonBar>
+    </bottom>
+</fx:root>

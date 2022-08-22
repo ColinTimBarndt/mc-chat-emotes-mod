@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Text?>
+<fx:root type="VBox" spacing="4" xmlns="http://javafx.com/javafx"
+         xmlns:fx="http://javafx.com/fxml">
+    <Text text="Attributions" styleClass="h2"/>
+    <GridPane fx:id="grid" hgap="4" vgap="4"/>
+</fx:root>
