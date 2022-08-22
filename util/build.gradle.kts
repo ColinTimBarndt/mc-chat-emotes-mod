@@ -8,6 +8,10 @@ plugins {
     application
 }
 
+sourceSets {
+
+}
+
 val config = Properties()
 File(rootDir, "build.properties").inputStream().use(config::load)
 
@@ -37,6 +41,7 @@ dependencies {
 
 application {
     mainClass.set("io.github.colintimbarndt.chat_emotes_util.Main")
+    applicationName = "Chat Emotes Utility"
 }
 
 val javaVersion = JavaVersion.VERSION_17

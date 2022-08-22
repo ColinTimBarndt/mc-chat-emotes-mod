@@ -7,5 +7,10 @@ import kotlinx.serialization.json.decodeFromStream
 
 object PackLangProvider {
     @OptIn(ExperimentalSerializationApi::class)
-    fun load(): Map<String, PackLang> = Json.decodeFromStream(streamAsset("/assets/packLang.json")!!)
+    fun load(): Map<String, PackLang> {
+        val languages = Json.decodeFromStream<List<String>>(streamAsset("/assets/packLangs.json")!!)
+        return languages.associateWith {
+            Json.decodeFromStream(streamAsset("/assets/chat_emotes/lang/$it.json")!!)
+        }
+    }
 }

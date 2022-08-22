@@ -4,6 +4,7 @@ import javafx.application.Application
 import javafx.fxml.FXMLLoader
 import javafx.scene.Parent
 import javafx.scene.Scene
+import javafx.scene.image.Image
 import javafx.stage.Stage
 
 class App : Application() {
@@ -24,6 +25,10 @@ class App : Application() {
         stage.title = "Chat Emotes Utility"
         stage.minWidth = 450.0
         stage.minHeight = 200.0
+        stage.icons.addAll(
+            Image("/assets/chat_emotes/icon.png"),
+            Image("/assets/chat_emotes/icon_128.png")
+        )
         stage.show()
     }
 }
