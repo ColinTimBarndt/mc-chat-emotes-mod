@@ -11,21 +11,23 @@ data class EmoteDataBundle(
     private val emotes: ArrayList<ChatEmote>,
 ) : List<ChatEmote> by emotes {
     @Transient
-    private val _emotesByAlias: HashMap<String, ChatEmote> = HashMap()
+    private val _emotesByAliasWithInnerColons: HashMap<String, ChatEmote> = HashMap()
 
     @Transient
-    val emotesByAlias: Map<String, ChatEmote> = Collections.unmodifiableMap(_emotesByAlias)
+    val emotesByAliasWithInnerColons: Map<String, ChatEmote> =
+        Collections.unmodifiableMap(_emotesByAliasWithInnerColons)
 
     @Transient
     private val _emotesByEmoticon: HashMap<String, ChatEmote> = HashMap()
 
     @Transient
-    val emotesByEmoticon: Map<String, ChatEmote> = Collections.unmodifiableMap(_emotesByEmoticon)
+    val emotesByEmoticon: Map<String, ChatEmote> =
+        Collections.unmodifiableMap(_emotesByEmoticon)
 
     init {
         for (emote in emotes) {
-            for (alias in emote.aliases) {
-                _emotesByAlias[alias] = emote
+            for (alias in emote.aliasesWithInnerColons) {
+                _emotesByAliasWithInnerColons[alias] = emote
             }
 
             for (emoticon in emote.emoticons) {

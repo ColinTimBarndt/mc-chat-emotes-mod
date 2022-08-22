@@ -17,9 +17,9 @@ private val emptyArray = ArrayList<String>(0)
 
 @Serializable
 data class ChatEmote(
-    val name: String?,
-    val category: String?,
-    val emoji: String?,
+    val name: String? = null,
+    val category: String? = null,
+    val emoji: String? = null,
     val aliases: ArrayList<String> = emptyArray,
     val emoticons: ArrayList<String> = emptyArray,
     val char: Char,
@@ -27,13 +27,17 @@ data class ChatEmote(
     val font: ResourceLocation,
 ) {
     @Transient
-    @kotlin.jvm.Transient
     val aliasWithColons =
         if (aliases.isEmpty()) null
         else {
             val str = aliases[0].replace(colonRegex, "::")
             ":$str:"
         }
+
+    @Transient
+    val aliasesWithInnerColons = aliases.map {
+        it.replace(colonRegex, "::")
+    }
 }
 
 private class ResourceLocationDeserializer : KSerializer<ResourceLocation> {
