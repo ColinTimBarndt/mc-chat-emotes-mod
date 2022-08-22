@@ -3,6 +3,7 @@
 
 package io.github.colintimbarndt.chat_emotes_util.emojidata
 
+import io.github.colintimbarndt.chat_emotes_util.isLTR
 import io.github.colintimbarndt.chat_emotes_util.model.*
 import io.github.colintimbarndt.chat_emotes_util.serial.FontAssetOptions
 import io.github.colintimbarndt.chat_emotes_util.serial.PackWriter
@@ -53,6 +54,10 @@ private inline fun Sequence<FlatEmojiData>.expand(
     return map { data ->
         if (char == '\u0000') throw IndexOutOfBoundsException("Out of characters")
         val emoji = data.variation
+        val ch = char
+        do {
+            char++
+        } while (!char.isLTR)
         ExpandedEmoteData(
             data,
             ChatEmoteData(
@@ -61,7 +66,7 @@ private inline fun Sequence<FlatEmojiData>.expand(
                 aliases = mapper.aliasesFor(data),
                 emoticons = mapper.emoticonsFor(data),
                 emoji = emoji.unified.toString(),
-                char = char++,
+                char = ch,
                 font = font
             )
         )
