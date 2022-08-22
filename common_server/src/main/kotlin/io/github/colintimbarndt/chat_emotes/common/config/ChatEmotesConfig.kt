@@ -10,7 +10,9 @@ import java.io.InputStream
 import java.io.OutputStream
 
 @Serializable
-class ChatEmotesConfig {
+data class ChatEmotesConfig(
+    val emoticons: Boolean = true
+) {
     // TODO: Add configuration options
 
     @OptIn(ExperimentalSerializationApi::class)
@@ -20,7 +22,11 @@ class ChatEmotesConfig {
     }
 
     companion object {
-        private val json = Json { ignoreUnknownKeys = true; prettyPrint = true }
+        private val json = Json {
+            ignoreUnknownKeys = true
+            prettyPrint = true
+            encodeDefaults = true
+        }
 
         @OptIn(ExperimentalSerializationApi::class)
         @Throws(IOException::class, kotlinx.serialization.SerializationException::class)

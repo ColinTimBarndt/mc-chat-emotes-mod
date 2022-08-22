@@ -1,5 +1,6 @@
 package io.github.colintimbarndt.chat_emotes.common
 
+import io.github.colintimbarndt.chat_emotes.common.config.ChatEmotesConfig
 import io.github.colintimbarndt.chat_emotes.common.data.ChatEmote
 import io.github.colintimbarndt.chat_emotes.common.data.EmoteDataLoaderBase
 import io.github.colintimbarndt.chat_emotes.common.util.ComponentUtils.fallback
@@ -18,6 +19,7 @@ abstract class EmoteDecoratorBase : ChatDecorator {
     }
 
     abstract val emoteDataLoader: EmoteDataLoaderBase
+    abstract val config: ChatEmotesConfig
 
     override fun decorate(serverPlayer: ServerPlayer?, message: Component): CompletableFuture<Component> {
         return CompletableFuture.completedFuture(replaceEmotes(message))
@@ -33,6 +35,7 @@ abstract class EmoteDecoratorBase : ChatDecorator {
     }
 
     private fun emoteForEmoticon(emoticon: String): ChatEmote? {
+        if (!config.emoticons) return null
         val dataList = emoteDataLoader.loadedEmoteData
         for (data in dataList) {
             val result = data.emotesByEmoticon[emoticon]
