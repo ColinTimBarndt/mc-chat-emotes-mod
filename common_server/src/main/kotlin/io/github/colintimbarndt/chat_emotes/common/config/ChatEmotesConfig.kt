@@ -11,7 +11,8 @@ import java.io.OutputStream
 
 @Serializable
 data class ChatEmotesConfig(
-    val emoticons: Boolean = true
+    val emoticons: Boolean = true,
+    val maxCombinedEmote: Int = 4,
 ) {
     // TODO: Add configuration options
 

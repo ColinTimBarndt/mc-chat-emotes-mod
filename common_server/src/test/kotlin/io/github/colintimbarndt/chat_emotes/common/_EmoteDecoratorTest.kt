@@ -40,6 +40,7 @@ class EmoteDecoratorTest {
             text,
             ends,
             start,
+            { _, _ -> true }
         ) { alias, emote, _, _ ->
             val (expectAlias, expectEmote) = result[i]
             assertEquals(expectAlias, alias)

@@ -2,7 +2,11 @@ package io.github.colintimbarndt.chat_emotes.common
 
 import io.github.colintimbarndt.chat_emotes.common.config.ChatEmotesConfig
 import io.github.colintimbarndt.chat_emotes.common.data.ChatEmote
+import io.github.colintimbarndt.chat_emotes.common.data.EmoteDataBundle
 import io.github.colintimbarndt.chat_emotes.common.data.EmoteDataLoaderBase
+import io.github.colintimbarndt.chat_emotes.common.permissions.EMOTES_PERMISSION
+import io.github.colintimbarndt.chat_emotes.common.permissions.PermissionsAdapter
+import io.github.colintimbarndt.chat_emotes.common.permissions.VanillaPermissionsAdapter.hasPermission
 import io.github.colintimbarndt.chat_emotes.common.util.ComponentUtils.fallback
 import io.github.colintimbarndt.chat_emotes.common.util.ComponentUtils.plusAssign
 import it.unimi.dsi.fastutil.ints.IntArrayList
@@ -24,27 +28,50 @@ abstract class EmoteDecoratorBase : ChatDecorator {
 
     abstract val emoteDataLoader: EmoteDataLoaderBase
     abstract val config: ChatEmotesConfig
+    abstract val permissionsAdapter: PermissionsAdapter
+    private val maxCombinedEmote inline get() = min(emoteDataLoader.maxCombinedEmote, config.maxCombinedEmote)
 
     override fun decorate(serverPlayer: ServerPlayer?, message: Component): CompletableFuture<Component> {
-        return CompletableFuture.completedFuture(replaceEmotes(message))
+        return CompletableFuture.completedFuture(replaceEmotes(message) { bundle, emote ->
+            permissionsAdapter.let {
+                serverPlayer?.hasPermission(emote.run {
+                    val namespace = bundle.resourceLocation.namespace
+                    val pack = bundle.resourceLocation.path
+                    if (aliases.isNotEmpty()) "$EMOTES_PERMISSION.$namespace.$pack.${aliases[0]}"
+                    else "$EMOTES_PERMISSION.$namespace.$pack"
+                })
+            } ?: true
+        })
     }
 
-    private fun emoteForAlias(alias: String): ChatEmote? {
+    private inline fun filteredEmoteByMap(
+        key: String,
+        map: (EmoteDataBundle) -> Map<String, ChatEmote>,
+        filter: (EmoteDataBundle, ChatEmote) -> Boolean,
+    ): ChatEmote? {
         val dataList = emoteDataLoader.loadedEmoteData
         for (data in dataList) {
-            val result = data.emotesByAliasWithInnerColons[alias]
-            if (result != null) return result
+            val result = map(data)[key]
+            if (result != null) {
+                return if (filter(data, result)) result
+                else null
+            }
         }
         return null
     }
 
-    private val maxCombo = 3
+    private inline fun emoteForAlias(
+        alias: String,
+        filter: (EmoteDataBundle, ChatEmote) -> Boolean,
+    ): ChatEmote? = filteredEmoteByMap(alias, EmoteDataBundle::emotesByAliasWithInnerColons, filter)
+
 
     @OptIn(ExperimentalContracts::class)
     internal inline fun emotesForAliasCombo(
         text: String,
         ends: IntArrayList,
         _start: Int,
+        filter: (EmoteDataBundle, ChatEmote) -> Boolean,
         callback: (String, ChatEmote?, Int, Int) -> Unit
     ) {
         contract {
@@ -53,12 +80,12 @@ abstract class EmoteDecoratorBase : ChatDecorator {
         // TODO: Use string slices for more performance
         var start = _start
         var endLeftBound = 0
-        Start@while (endLeftBound < ends.size) {
-            val upperBound = min(endLeftBound + maxCombo, ends.size - 1)
+        Start@ while (endLeftBound < ends.size) {
+            val upperBound = min(endLeftBound + maxCombinedEmote, ends.size - 1)
             for (endIdx in upperBound downTo endLeftBound) {
                 val end = ends.getInt(endIdx)
                 val alias = text.substring(start, end)
-                val emote = emoteForAlias(alias)
+                val emote = emoteForAlias(alias, filter)
                 if (emote != null || endIdx == endLeftBound) {
                     callback(alias, emote, start, end)
                     start = end + 2
@@ -69,15 +96,10 @@ abstract class EmoteDecoratorBase : ChatDecorator {
         }
     }
 
-    private fun emoteForEmoticon(emoticon: String): ChatEmote? {
-        if (!config.emoticons) return null
-        val dataList = emoteDataLoader.loadedEmoteData
-        for (data in dataList) {
-            val result = data.emotesByEmoticon[emoticon]
-            if (result != null) return result
-        }
-        return null
-    }
+    private fun emoteForEmoticon(
+        emoticon: String,
+        filter: (EmoteDataBundle, ChatEmote) -> Boolean
+    ): ChatEmote? = filteredEmoteByMap(emoticon, EmoteDataBundle::emotesByEmoticon, filter)
 
     private fun createEmoteComponent(emote: ChatEmote, fallback: String): Component {
         var emoteStyle = FONT_BASE_STYLE.withFont(emote.font)
@@ -96,7 +118,7 @@ abstract class EmoteDecoratorBase : ChatDecorator {
         )
     }
 
-    private fun replaceEmotes(comp: Component, filter: (ChatEmote) -> Boolean = { true }): Component {
+    private fun replaceEmotes(comp: Component, filter: (EmoteDataBundle, ChatEmote) -> Boolean): Component {
         val content = comp.contents
         var mut: MutableComponent? = null
 
@@ -109,8 +131,8 @@ abstract class EmoteDecoratorBase : ChatDecorator {
             var i = 0
 
             fun addEmotes() {
-                emotesForAliasCombo(text, aliasEnds, aliasStart) { raw, emote, start, end ->
-                    if ((emote != null) && filter(emote)) {
+                emotesForAliasCombo(text, aliasEnds, aliasStart, filter) { raw, emote, start, end ->
+                    if (emote != null) {
                         val mut0 = mut ?: Component.empty().also { mut = it }
                         if (startClip < start - 1)
                             mut0 += text.substring(startClip, start - 1)
@@ -144,8 +166,8 @@ abstract class EmoteDecoratorBase : ChatDecorator {
                         }
                         if (startEmoticon != i) {
                             val emoticon = text.substring(startEmoticon, i)
-                            val emote = emoteForEmoticon(emoticon)
-                            if ((emote != null) && filter(emote)) {
+                            val emote = emoteForEmoticon(emoticon, filter)
+                            if ((emote != null)) {
                                 val mut0 = mut ?: Component.empty().also { mut = it }
                                 mut0 += text.substring(startClip, startEmoticon)
                                 mut0 += createEmoteComponent(emote, emoticon)
@@ -162,7 +184,7 @@ abstract class EmoteDecoratorBase : ChatDecorator {
             }
             if (startEmoticon != text.length) {
                 val emoticon = text.substring(startEmoticon)
-                val emote = emoteForEmoticon(emoticon)
+                val emote = emoteForEmoticon(emoticon, filter)
                 if (emote != null) {
                     val mut0 = mut ?: Component.empty().also { mut = it }
                     mut0 += text.substring(startClip, startEmoticon)

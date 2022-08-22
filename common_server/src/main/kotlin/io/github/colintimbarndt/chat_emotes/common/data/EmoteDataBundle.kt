@@ -1,6 +1,7 @@
 package io.github.colintimbarndt.chat_emotes.common.data
 
 import net.minecraft.resources.ResourceLocation
+import java.lang.Integer.max
 import java.util.Collections
 
 /**
@@ -24,15 +25,21 @@ data class EmoteDataBundle(
     val emotesByEmoticon: Map<String, ChatEmote> =
         Collections.unmodifiableMap(_emotesByEmoticon)
 
+    @Transient
+    val maxCombinedEmote: Int
+
     init {
+        var max = 0
         for (emote in emotes) {
             for (alias in emote.aliasesWithInnerColons) {
                 _emotesByAliasWithInnerColons[alias] = emote
+                max = max(max, alias.count { it == ':' })
             }
 
             for (emoticon in emote.emoticons) {
                 _emotesByEmoticon[emoticon] = emote
             }
         }
+        maxCombinedEmote = max
     }
 }
