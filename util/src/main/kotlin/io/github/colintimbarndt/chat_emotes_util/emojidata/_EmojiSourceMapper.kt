@@ -26,7 +26,7 @@ fun interface EmoticonMapper {
     fun emoticonsFor(data: FlatEmojiData): List<String>
 }
 
-internal val ALIAS_PATTERN = Regex("[a-z0-9_-]+(:[a-z0-9_-]+)*")
+internal val ALIAS_PATTERN = Regex("[a-z0-9_+-]+(:[a-z0-9_+-]+)*")
 
 data class ComposedEmojiSourceMapper(
     val name: NameMapper,
