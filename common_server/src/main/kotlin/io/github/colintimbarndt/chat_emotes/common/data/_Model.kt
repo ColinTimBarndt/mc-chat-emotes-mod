@@ -27,17 +27,12 @@ data class ChatEmote(
     val font: ResourceLocation,
 ) {
     @Transient
-    val aliasWithColons =
-        if (aliases.isEmpty()) null
-        else {
-            val str = aliases[0].replace(colonRegex, "::")
-            ":$str:"
-        }
-
-    @Transient
     val aliasesWithInnerColons = aliases.map {
         it.replace(colonRegex, "::")
     }
+
+    @Transient
+    val aliasWithColons = aliasesWithInnerColons.firstOrNull() ?.let { ":$it:" }
 }
 
 private class ResourceLocationDeserializer : KSerializer<ResourceLocation> {

@@ -40,6 +40,7 @@ data class EmoteDataBundle(
                 _emotesByEmoticon[emoticon] = emote
             }
         }
-        maxCombinedEmote = max
+        // Divide by two, as colons are `::`
+        maxCombinedEmote = max shr 1
     }
 }
