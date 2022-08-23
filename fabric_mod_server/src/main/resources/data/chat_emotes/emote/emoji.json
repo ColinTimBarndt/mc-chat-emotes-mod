@@ -8094,10 +8094,8 @@
         "emoji": "👍",
         "aliases": [
             "thumbsup",
+            "+1",
             "thumbup"
-        ],
-        "emoticons": [
-            "+1"
         ],
         "char": "",
         "font": "chat_emotes:emoji"
@@ -8108,13 +8106,11 @@
         "emoji": "👍🏻",
         "aliases": [
             "thumbsup_tone1",
+            "+1_tone1",
             "thumbup_tone1",
             "thumbsup:skin-tone-1",
+            "+1:skin-tone-1",
             "thumbup:skin-tone-1"
-        ],
-        "emoticons": [
-            "+1_tone1",
-            "+1:skin-tone-1"
         ],
         "char": "",
         "font": "chat_emotes:emoji"
@@ -8125,13 +8121,11 @@
         "emoji": "👍🏿",
         "aliases": [
             "thumbsup_tone5",
+            "+1_tone5",
             "thumbup_tone5",
             "thumbsup:skin-tone-5",
+            "+1:skin-tone-5",
             "thumbup:skin-tone-5"
-        ],
-        "emoticons": [
-            "+1_tone5",
-            "+1:skin-tone-5"
         ],
         "char": "",
         "font": "chat_emotes:emoji"
@@ -8142,13 +8136,11 @@
         "emoji": "👍🏾",
         "aliases": [
             "thumbsup_tone4",
+            "+1_tone4",
             "thumbup_tone4",
             "thumbsup:skin-tone-4",
+            "+1:skin-tone-4",
             "thumbup:skin-tone-4"
-        ],
-        "emoticons": [
-            "+1_tone4",
-            "+1:skin-tone-4"
         ],
         "char": "",
         "font": "chat_emotes:emoji"
@@ -8159,13 +8151,11 @@
         "emoji": "👍🏽",
         "aliases": [
             "thumbsup_tone3",
+            "+1_tone3",
             "thumbup_tone3",
             "thumbsup:skin-tone-3",
+            "+1:skin-tone-3",
             "thumbup:skin-tone-3"
-        ],
-        "emoticons": [
-            "+1_tone3",
-            "+1:skin-tone-3"
         ],
         "char": "",
         "font": "chat_emotes:emoji"
@@ -8176,13 +8166,11 @@
         "emoji": "👍🏼",
         "aliases": [
             "thumbsup_tone2",
+            "+1_tone2",
             "thumbup_tone2",
             "thumbsup:skin-tone-2",
+            "+1:skin-tone-2",
             "thumbup:skin-tone-2"
-        ],
-        "emoticons": [
-            "+1_tone2",
-            "+1:skin-tone-2"
         ],
         "char": "",
         "font": "chat_emotes:emoji"
