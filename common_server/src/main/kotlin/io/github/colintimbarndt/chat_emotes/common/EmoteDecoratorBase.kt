@@ -4,6 +4,7 @@ import io.github.colintimbarndt.chat_emotes.common.config.ChatEmotesConfig
 import io.github.colintimbarndt.chat_emotes.common.data.ChatEmote
 import io.github.colintimbarndt.chat_emotes.common.data.EmoteDataBundle
 import io.github.colintimbarndt.chat_emotes.common.data.EmoteDataLoaderBase
+import io.github.colintimbarndt.chat_emotes.common.data.PrefixTreeNode
 import io.github.colintimbarndt.chat_emotes.common.permissions.EMOTES_PERMISSION
 import io.github.colintimbarndt.chat_emotes.common.permissions.PermissionsAdapter
 import io.github.colintimbarndt.chat_emotes.common.permissions.VanillaPermissionsAdapter.hasPermission
@@ -15,7 +16,6 @@ import net.minecraft.network.chat.*
 import net.minecraft.network.chat.Component.literal
 import net.minecraft.network.chat.contents.LiteralContents
 import net.minecraft.server.level.ServerPlayer
-import java.lang.Integer.min
 import java.util.concurrent.CompletableFuture
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
@@ -29,7 +29,6 @@ abstract class EmoteDecoratorBase : ChatDecorator {
     abstract val emoteDataLoader: EmoteDataLoaderBase
     abstract val config: ChatEmotesConfig
     abstract val permissionsAdapter: PermissionsAdapter
-    private val maxCombinedEmote inline get() = min(emoteDataLoader.maxCombinedEmote, config.maxCombinedEmote)
 
     override fun decorate(serverPlayer: ServerPlayer?, message: Component): CompletableFuture<Component> {
         return CompletableFuture.completedFuture(replaceEmotes(message) { bundle, emote ->
@@ -81,18 +80,35 @@ abstract class EmoteDecoratorBase : ChatDecorator {
         var start = _start
         var endLeftBound = 0
         Start@ while (endLeftBound < ends.size) {
-            val upperBound = min(endLeftBound + maxCombinedEmote, ends.size - 1)
-            for (endIdx in upperBound downTo endLeftBound) {
-                val end = ends.getInt(endIdx)
-                val alias = text.substring(start, end)
-                val emote = emoteForAlias(alias, filter)
-                if (emote != null || endIdx == endLeftBound) {
-                    callback(alias, emote, start, end)
-                    start = end + 2
-                    endLeftBound = endIdx + 1
-                    continue@Start
-                }
+            var endIdx = endLeftBound
+            var validEndIdx = 0
+            var end = ends.getInt(endIdx)
+            var alias = text.substring(start, end)
+            var type = emoteDataLoader.aliasTree[alias]
+
+            if (type == PrefixTreeNode.Invalid) {
+                // No valid emote found
+                callback(alias, null, start, end)
+                start = end + 2
+                endLeftBound++
+                continue@Start
             }
+            do {
+                val endNext = ends.getInt(endIdx)
+                val aliasNext = text.substring(start, endNext)
+                type = emoteDataLoader.aliasTree[aliasNext]
+                if (type == PrefixTreeNode.Valid) {
+                    validEndIdx = endIdx
+                    end = endNext
+                    alias = aliasNext
+                }
+                endIdx++
+            } while (type != PrefixTreeNode.Invalid && endIdx < ends.size)
+            // Valid emote (sequence) found
+            val emote = emoteForAlias(alias, filter)
+            callback(alias, emote, start, end)
+            start = end + 2
+            endLeftBound = validEndIdx + 1
         }
     }
 
