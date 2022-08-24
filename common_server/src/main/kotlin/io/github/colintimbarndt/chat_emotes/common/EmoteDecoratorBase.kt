@@ -64,6 +64,15 @@ abstract class EmoteDecoratorBase : ChatDecorator {
         filter: (EmoteDataBundle, ChatEmote) -> Boolean,
     ): ChatEmote? = filteredEmoteByMap(alias, EmoteDataBundle::emotesByAliasWithInnerColons, filter)
 
+    private inline fun emoteForEmoticon(
+        emoticon: String,
+        filter: (EmoteDataBundle, ChatEmote) -> Boolean
+    ): ChatEmote? = filteredEmoteByMap(emoticon, EmoteDataBundle::emotesByEmoticon, filter)
+
+    private inline fun emoteForEmoji(
+        emoji: String,
+        filter: (EmoteDataBundle, ChatEmote) -> Boolean
+    ) = filteredEmoteByMap(emoji, EmoteDataBundle::emotesByEmoji, filter)
 
     @OptIn(ExperimentalContracts::class)
     internal inline fun emotesForAliasCombo(
@@ -112,11 +121,6 @@ abstract class EmoteDecoratorBase : ChatDecorator {
         }
     }
 
-    private fun emoteForEmoticon(
-        emoticon: String,
-        filter: (EmoteDataBundle, ChatEmote) -> Boolean
-    ): ChatEmote? = filteredEmoteByMap(emoticon, EmoteDataBundle::emotesByEmoticon, filter)
-
     private fun createEmoteComponent(emote: ChatEmote, fallback: String): Component {
         var emoteStyle = FONT_BASE_STYLE.withFont(emote.font)
         if (emote.aliasWithColons != null) {
@@ -160,8 +164,15 @@ abstract class EmoteDecoratorBase : ChatDecorator {
                 aliasEnds.clear()
             }
 
+            fun insertEmote(emote: ChatEmote, emoticon: String, from: Int, to: Int) {
+                val mut0 = mut ?: Component.empty().also { mut = it }
+                mut0 += text.substring(startClip, from)
+                mut0 += createEmoteComponent(emote, emoticon)
+                startClip = to
+            }
+
             while (i < text.length) {
-                when (text[i]) {
+                when (val char = text[i]) {
                     ':' -> {
                         if (aliasStart == -1 || aliasStart == i) {
                             aliasStart = i + 1
@@ -177,35 +188,55 @@ abstract class EmoteDecoratorBase : ChatDecorator {
                     }
 
                     ' ' -> {
-                        if (aliasStart > 0) {
-                            addEmotes()
-                        }
+                        if (aliasStart > 0) addEmotes()
                         if (startEmoticon != i) {
                             val emoticon = text.substring(startEmoticon, i)
                             val emote = emoteForEmoticon(emoticon, filter)
                             if ((emote != null)) {
-                                val mut0 = mut ?: Component.empty().also { mut = it }
-                                mut0 += text.substring(startClip, startEmoticon)
-                                mut0 += createEmoteComponent(emote, emoticon)
-                                startClip = i
+                                insertEmote(emote, emoticon, startEmoticon, i)
                             }
                         }
                         startEmoticon = i + 1
                     }
+
+                    else -> {
+                        var state = emoteDataLoader.emojiTree[char]
+                        if (state != PrefixTreeNode.Invalid) {
+                            var emoji = if (state == PrefixTreeNode.Valid) char.toString() else null
+                            val start = i
+                            var end = i + 1
+                            if (end < text.length) {
+                                var endNext = end + 1
+                                do {
+                                    val emojiNext = text.substring(start, endNext)
+                                    state = emoteDataLoader.emojiTree[emojiNext]
+                                    if (state == PrefixTreeNode.Valid) {
+                                        emoji = emojiNext
+                                        end = endNext
+                                    }
+                                    endNext++
+                                } while (state != PrefixTreeNode.Invalid && endNext <= text.length)
+                            }
+                            if (emoji != null) {
+                                val emote = emoteForEmoji(emoji, filter)
+                                if (emote != null) {
+                                    if (aliasStart > 0) addEmotes()
+                                    insertEmote(emote, emoji, start, end)
+                                    i += emoji.length
+                                    continue
+                                }
+                            }
+                        }
+                    }
                 }
                 i++
             }
-            if (aliasStart > 0) {
-                addEmotes()
-            }
+            if (aliasStart > 0) addEmotes()
             if (startEmoticon != text.length) {
                 val emoticon = text.substring(startEmoticon)
                 val emote = emoteForEmoticon(emoticon, filter)
                 if (emote != null) {
-                    val mut0 = mut ?: Component.empty().also { mut = it }
-                    mut0 += text.substring(startClip, startEmoticon)
-                    mut0 += createEmoteComponent(emote, emoticon)
-                    startClip = text.length
+                    insertEmote(emote, emoticon, startEmoticon, text.length)
                 }
             }
             val mut0 = mut ?: return comp
