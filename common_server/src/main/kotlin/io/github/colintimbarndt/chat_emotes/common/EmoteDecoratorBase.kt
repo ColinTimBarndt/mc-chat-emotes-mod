@@ -151,7 +151,11 @@ abstract class EmoteDecoratorBase : ChatDecorator {
         val content = comp.contents
         var mut: MutableComponent? = null
 
-        if (content is LiteralContents) {
+        val enableAliases = config.aliases
+        val enableEmoticons = config.emoticons
+        val enableEmojis = config.emojis
+
+        if ((enableAliases || enableEmoticons || enableEmojis) && content is LiteralContents) {
             val text = content.text
             val aliasEnds = IntArrayList(4) // Example: :x::y: is [2, 5]
             var startClip = 0
@@ -182,7 +186,7 @@ abstract class EmoteDecoratorBase : ChatDecorator {
 
             while (i < text.length) {
                 when (val char = text[i]) {
-                    ':' -> {
+                    ':' -> if (enableAliases) {
                         if (aliasStart == -1 || aliasStart == i) {
                             aliasStart = i + 1
                         } else {
@@ -196,7 +200,7 @@ abstract class EmoteDecoratorBase : ChatDecorator {
                         }
                     }
 
-                    ' ' -> {
+                    ' ' -> if (enableEmoticons) {
                         if (aliasStart > 0) addEmotes()
                         if (startEmoticon != i) {
                             val emoticon = text.substring(startEmoticon, i)
@@ -208,7 +212,7 @@ abstract class EmoteDecoratorBase : ChatDecorator {
                         startEmoticon = i + 1
                     }
 
-                    else -> {
+                    else -> if (enableEmojis) {
                         var state = emoteDataLoader.emojiTree[char]
                         if (state != PrefixTreeNode.Invalid) {
                             var emoji = if (state == PrefixTreeNode.Valid) char.toString() else null
