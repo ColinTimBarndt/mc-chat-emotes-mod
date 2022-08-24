@@ -3,6 +3,8 @@
 
 package io.github.colintimbarndt.chat_emotes.common.data
 
+import io.github.colintimbarndt.chat_emotes.common.util.HashedStringBuilder
+import io.github.colintimbarndt.chat_emotes.common.util.HashedStringBuilder.Companion.get
 import io.netty.util.collection.CharObjectHashMap
 
 @JvmInline
@@ -34,6 +36,8 @@ value class AliasPrefixTree(
     }
 
     operator fun get(alias: String) = data[alias] ?: PrefixTreeNode.Invalid
+
+    operator fun get(alias: HashedStringBuilder) = data[alias] ?: PrefixTreeNode.Invalid
 }
 
 class EmojiPrefixTree {
@@ -65,6 +69,12 @@ class EmojiPrefixTree {
     }
 
     operator fun get(emoji: String) = when (emoji.length) {
+        0 -> PrefixTreeNode.Invalid
+        1 -> charData[emoji[0]] ?: PrefixTreeNode.Invalid
+        else -> data[emoji] ?: PrefixTreeNode.Invalid
+    }
+
+    operator fun get(emoji: HashedStringBuilder) = when (emoji.length) {
         0 -> PrefixTreeNode.Invalid
         1 -> charData[emoji[0]] ?: PrefixTreeNode.Invalid
         else -> data[emoji] ?: PrefixTreeNode.Invalid

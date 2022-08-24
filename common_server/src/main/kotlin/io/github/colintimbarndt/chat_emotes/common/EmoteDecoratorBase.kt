@@ -10,6 +10,7 @@ import io.github.colintimbarndt.chat_emotes.common.permissions.PermissionsAdapte
 import io.github.colintimbarndt.chat_emotes.common.permissions.VanillaPermissionsAdapter.hasPermission
 import io.github.colintimbarndt.chat_emotes.common.util.ComponentUtils.fallback
 import io.github.colintimbarndt.chat_emotes.common.util.ComponentUtils.plusAssign
+import io.github.colintimbarndt.chat_emotes.common.util.HashedStringBuilder
 import it.unimi.dsi.fastutil.ints.IntArrayList
 import net.minecraft.ChatFormatting
 import net.minecraft.network.chat.*
@@ -31,15 +32,20 @@ abstract class EmoteDecoratorBase : ChatDecorator {
     abstract val permissionsAdapter: PermissionsAdapter
 
     override fun decorate(serverPlayer: ServerPlayer?, message: Component): CompletableFuture<Component> {
-        return CompletableFuture.completedFuture(replaceEmotes(message) { bundle, emote ->
-            permissionsAdapter.let {
-                serverPlayer?.hasPermission(emote.run {
-                    val namespace = bundle.resourceLocation.namespace
-                    val pack = bundle.resourceLocation.path
-                    if (aliases.isNotEmpty()) "$EMOTES_PERMISSION.$namespace.$pack.${aliases[0]}"
-                    else "$EMOTES_PERMISSION.$namespace.$pack"
-                })
-            } ?: true
+        return CompletableFuture.completedFuture(try {
+            replaceEmotes(message) { bundle, emote ->
+                permissionsAdapter.let {
+                    serverPlayer?.hasPermission(emote.run {
+                        val namespace = bundle.resourceLocation.namespace
+                        val pack = bundle.resourceLocation.path
+                        if (aliases.isNotEmpty()) "$EMOTES_PERMISSION.$namespace.$pack.${aliases[0]}"
+                        else "$EMOTES_PERMISSION.$namespace.$pack"
+                    })
+                } ?: true
+            }
+        } catch (ex: Throwable) {
+            LOGGER.error("Error parsing message:", ex)
+            message
         })
     }
 
@@ -85,7 +91,6 @@ abstract class EmoteDecoratorBase : ChatDecorator {
         contract {
             callsInPlace(callback)
         }
-        // TODO: Use string slices for more performance
         var start = _start
         var endLeftBound = 0
         Start@ while (endLeftBound < ends.size) {
@@ -102,15 +107,19 @@ abstract class EmoteDecoratorBase : ChatDecorator {
                 endLeftBound++
                 continue@Start
             }
-            do {
+
+            val aliasBuilder = HashedStringBuilder(alias)
+            var endPrev = end
+            if (++endIdx < ends.size) do {
                 val endNext = ends.getInt(endIdx)
-                val aliasNext = text.substring(start, endNext)
-                type = emoteDataLoader.aliasTree[aliasNext]
+                aliasBuilder.append(text, endPrev, endNext)
+                type = emoteDataLoader.aliasTree[aliasBuilder]
                 if (type == PrefixTreeNode.Valid) {
                     validEndIdx = endIdx
                     end = endNext
-                    alias = aliasNext
+                    alias = aliasBuilder.toString()
                 }
+                endPrev = endNext
                 endIdx++
             } while (type != PrefixTreeNode.Invalid && endIdx < ends.size)
             // Valid emote (sequence) found
@@ -206,14 +215,17 @@ abstract class EmoteDecoratorBase : ChatDecorator {
                             val start = i
                             var end = i + 1
                             if (end < text.length) {
-                                var endNext = end + 1
+                                val emojiBuilder = HashedStringBuilder(text, start, end)
+                                var endNext = end
+                                var endPrev = endNext++
                                 do {
-                                    val emojiNext = text.substring(start, endNext)
-                                    state = emoteDataLoader.emojiTree[emojiNext]
+                                    emojiBuilder.append(text, endPrev, endNext)
+                                    state = emoteDataLoader.emojiTree[emojiBuilder]
                                     if (state == PrefixTreeNode.Valid) {
-                                        emoji = emojiNext
+                                        emoji = emojiBuilder.toString()
                                         end = endNext
                                     }
+                                    endPrev++
                                     endNext++
                                 } while (state != PrefixTreeNode.Invalid && endNext <= text.length)
                             }
