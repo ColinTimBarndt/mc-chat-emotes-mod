@@ -21,7 +21,8 @@ import kotlin.collections.HashMap
 abstract class EmoteDataLoaderBase {
     var loadedEmoteData: List<EmoteDataBundle> = emptyList()
         protected set
-    val aliasTree = PrefixTree(HashMap(4096))
+    val aliasTree = AliasPrefixTree(HashMap(4096))
+    val emojiTree = EmojiPrefixTree()
     protected val resourceLoaderIdentifier = ResourceLocation(NAMESPACE, "emotes")
     protected abstract val serverMod: ChatEmotesServerModBase
 
@@ -57,6 +58,7 @@ abstract class EmoteDataLoaderBase {
     ): CompletableFuture<Void?> = Futures.supplyAsync(executor) {
         loadedEmoteData = Collections.unmodifiableList(data)
         aliasTree.load(loadedEmoteData, serverMod.config.maxCombinedEmote)
+        emojiTree.load(loadedEmoteData)
         LOGGER.info("Loaded {} emotes", data.asSequence().map { it.size }.sum())
         null
     }
