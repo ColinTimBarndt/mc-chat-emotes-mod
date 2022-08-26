@@ -11,10 +11,11 @@ import java.io.OutputStream
 
 @Serializable
 data class ChatEmotesConfig(
-    val emoticons: Boolean = true
+    val aliases: Boolean = true,
+    val emoticons: Boolean = true,
+    val emojis: Boolean = true,
+    val maxCombinedEmote: Int = 4,
 ) {
-    // TODO: Add configuration options
-
     @OptIn(ExperimentalSerializationApi::class)
     @Throws(IOException::class)
     fun save(output: OutputStream) {

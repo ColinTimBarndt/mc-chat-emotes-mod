@@ -51,7 +51,7 @@
         "type": "string"
       },
       "font": {
-        "description": "Minecraft font in which the UTF-16 has the desired texture",
+        "description": "Minecraft font in which the UTF-16 character has the desired texture",
         "$ref": "#/$defs/resource_location"
       }
     }

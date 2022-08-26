@@ -16,10 +16,13 @@ import net.minecraft.util.profiling.ProfilerFiller
 import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
+import kotlin.collections.HashMap
 
 abstract class EmoteDataLoaderBase {
     var loadedEmoteData: List<EmoteDataBundle> = emptyList()
         protected set
+    val aliasTree = AliasPrefixTree(HashMap(4096))
+    val emojiTree = EmojiPrefixTree()
     protected val resourceLoaderIdentifier = ResourceLocation(NAMESPACE, "emotes")
     protected abstract val serverMod: ChatEmotesServerModBase
 
@@ -52,10 +55,12 @@ abstract class EmoteDataLoaderBase {
         manager: ResourceManager,
         profiler: ProfilerFiller,
         executor: Executor
-    ): CompletableFuture<Void> {
+    ): CompletableFuture<Void?> = Futures.supplyAsync(executor) {
         loadedEmoteData = Collections.unmodifiableList(data)
+        aliasTree.load(loadedEmoteData, serverMod.config.maxCombinedEmote)
+        emojiTree.load(loadedEmoteData)
         LOGGER.info("Loaded {} emotes", data.asSequence().map { it.size }.sum())
-        return CompletableFuture.completedFuture(null)
+        null
     }
 
     @OptIn(ExperimentalSerializationApi::class)
