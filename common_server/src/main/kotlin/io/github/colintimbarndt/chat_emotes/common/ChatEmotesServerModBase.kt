@@ -3,6 +3,7 @@ package io.github.colintimbarndt.chat_emotes.common
 import io.github.colintimbarndt.chat_emotes.common.config.ChatEmotesConfig
 import io.github.colintimbarndt.chat_emotes.common.data.EmoteDataLoaderBase
 import io.github.colintimbarndt.chat_emotes.common.permissions.PermissionsAdapter
+import io.github.colintimbarndt.chat_emotes.common.permissions.SafePermissionsAdapter
 import io.github.colintimbarndt.chat_emotes.common.permissions.VanillaPermissionsAdapter
 import kotlinx.serialization.SerializationException
 import java.io.FileInputStream
@@ -16,7 +17,9 @@ abstract class ChatEmotesServerModBase {
     abstract val emoteDataLoader: EmoteDataLoaderBase
     abstract val registries: Registries
     abstract val emoteDecorator: EmoteDecoratorBase
-    var permissionsAdapter: PermissionsAdapter = VanillaPermissionsAdapter
+    var permissionsAdapter: PermissionsAdapter = SafePermissionsAdapter
+
+    protected open fun findPermissionsAdapter(): PermissionsAdapter = VanillaPermissionsAdapter
 
     fun reloadConfig(): Boolean {
         val file = configPath.resolve("config.json").toFile()

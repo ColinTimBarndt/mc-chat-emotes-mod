@@ -7,6 +7,8 @@ import io.github.colintimbarndt.chat_emotes.common.LOGGER
 import io.github.colintimbarndt.chat_emotes.common.MOD_ID
 import io.github.colintimbarndt.chat_emotes.common.Registries
 import io.github.colintimbarndt.chat_emotes.common.config.ChatEmotesConfig
+import io.github.colintimbarndt.chat_emotes.common.permissions.LuckpermsPermissionsAdapter
+import io.github.colintimbarndt.chat_emotes.common.permissions.PermissionsAdapter
 import io.github.colintimbarndt.chat_emotes.data.EmoteDataLoader
 import net.fabricmc.api.DedicatedServerModInitializer
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
@@ -29,6 +31,7 @@ object ChatEmotesServerMod : ChatEmotesServerModBase(), DedicatedServerModInitia
     lateinit var modMetadata: ModMetadata private set
 
     override fun onInitializeServer() {
+        permissionsAdapter = findPermissionsAdapter()
         registries = Registries()
 
         val loader = FabricLoader.getInstance()
@@ -55,5 +58,18 @@ object ChatEmotesServerMod : ChatEmotesServerModBase(), DedicatedServerModInitia
         if (env.includeDedicated) {
             ChatEmotesCommand.register(dispatcher)
         }
+    }
+
+    override fun findPermissionsAdapter(): PermissionsAdapter {
+        val loader = FabricLoader.getInstance()
+        if (loader.isModLoaded("luckperms")) {
+            LOGGER.info("Connecting to LuckPerms")
+            runCatching {
+                return LuckpermsPermissionsAdapter
+            }.onFailure {
+                LOGGER.error("Unable to connect to LuckPerms", it)
+            }
+        }
+        return super.findPermissionsAdapter()
     }
 }
