@@ -28,6 +28,7 @@ dependencies {
     mappings(loom.officialMojangMappings())
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0-RC")
+    compileOnly("net.luckperms:api:5.4")
 }
 
 tasks {
