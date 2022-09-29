@@ -1,5 +1,8 @@
 package io.github.colintimbarndt.chat_emotes.common
 
+import io.github.colintimbarndt.chat_emotes.common.abstraction.ChatColor
+import io.github.colintimbarndt.chat_emotes.common.abstraction.AbstractComponentFactory
+import io.github.colintimbarndt.chat_emotes.common.abstraction.AbstractImmutableComponentBuilder
 import io.github.colintimbarndt.chat_emotes.common.config.ChatEmotesConfig
 import io.github.colintimbarndt.chat_emotes.common.data.ChatEmote
 import io.github.colintimbarndt.chat_emotes.common.data.EmoteDataBundle
@@ -7,46 +10,41 @@ import io.github.colintimbarndt.chat_emotes.common.data.EmoteDataLoaderBase
 import io.github.colintimbarndt.chat_emotes.common.data.PrefixTreeNode
 import io.github.colintimbarndt.chat_emotes.common.permissions.EMOTES_PERMISSION
 import io.github.colintimbarndt.chat_emotes.common.permissions.PermissionsAdapter
-import io.github.colintimbarndt.chat_emotes.common.permissions.VanillaPermissionsAdapter.hasPermission
 import io.github.colintimbarndt.chat_emotes.common.util.ComponentUtils.fallback
-import io.github.colintimbarndt.chat_emotes.common.util.ComponentUtils.plusAssign
 import io.github.colintimbarndt.chat_emotes.common.util.HashedStringBuilder
 import it.unimi.dsi.fastutil.ints.IntArrayList
-import net.minecraft.ChatFormatting
-import net.minecraft.network.chat.*
-import net.minecraft.network.chat.Component.literal
-import net.minecraft.network.chat.contents.LiteralContents
-import net.minecraft.server.level.ServerPlayer
-import java.util.concurrent.CompletableFuture
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
-abstract class EmoteDecoratorBase : ChatDecorator {
+abstract class EmoteDecoratorBase<P, Component>(
+    private val componentFactory: AbstractComponentFactory<Component>,
+) {
     companion object {
-        private val FONT_BASE_STYLE: Style = Style.EMPTY.withColor(ChatFormatting.WHITE)
-        private val HIGHLIGHT_STYLE: Style = Style.EMPTY.withColor(ChatFormatting.YELLOW)
+        private val FONT_BASE_COLOR: ChatColor = ChatColor.WHITE
+        private val HIGHLIGHT_COLOR: ChatColor = ChatColor.YELLOW
     }
+
+    protected abstract val permissionsAdapter: PermissionsAdapter<P, *>
 
     abstract val emoteDataLoader: EmoteDataLoaderBase
     abstract val config: ChatEmotesConfig
-    abstract val permissionsAdapter: PermissionsAdapter
 
-    override fun decorate(serverPlayer: ServerPlayer?, message: Component): CompletableFuture<Component> {
-        return CompletableFuture.completedFuture(try {
+    fun decorateSync(player: P?, message: Component): Component {
+        return try {
             replaceEmotes(message) { bundle, emote ->
-                permissionsAdapter.let {
-                    serverPlayer?.hasPermission(emote.run {
+                if (player != null) {
+                    permissionsAdapter.playerHasPermission(player, emote.run {
                         val namespace = bundle.resourceLocation.namespace
                         val pack = bundle.resourceLocation.path
                         if (aliases.isNotEmpty()) "$EMOTES_PERMISSION.$namespace.$pack.${aliases[0]}"
                         else "$EMOTES_PERMISSION.$namespace.$pack"
                     })
-                } ?: true
+                } else true
             }
         } catch (ex: Throwable) {
             LOGGER.error("Error parsing message:", ex)
             message
-        })
+        }
     }
 
     private inline fun filteredEmoteByMap(
@@ -130,33 +128,40 @@ abstract class EmoteDecoratorBase : ChatDecorator {
         }
     }
 
-    private fun createEmoteComponent(emote: ChatEmote, fallback: String): Component {
-        var emoteStyle = FONT_BASE_STYLE.withFont(emote.font)
-        if (emote.aliasWithColons != null) {
-            emoteStyle = emoteStyle.withHoverEvent(
-                HoverEvent(
-                    HoverEvent.Action.SHOW_TEXT,
-                    literal(emote.aliasWithColons).setStyle(HIGHLIGHT_STYLE)
-                )
+    private fun createEmoteComponent(emote: ChatEmote, fallback: String): Component =
+        componentFactory.run {
+            var component = fallback(
+                text(fallback),
+                literal(emote.char.toString())
+                    .font(emote.font)
+                    .color(FONT_BASE_COLOR)
+                    .build()
             )
+            if (emote.aliasWithColons != null) {
+                component = component.onHover {
+                    showText(
+                        literal(emote.aliasWithColons)
+                            .color(HIGHLIGHT_COLOR)
+                            .build()
+                    )
+                }
+            }
+            return component.build()
         }
-        return fallback(
-            literal(fallback),
-            literal(emote.char.toString())
-                .setStyle(emoteStyle)
-        )
-    }
 
-    private fun replaceEmotes(comp: Component, filter: (EmoteDataBundle, ChatEmote) -> Boolean): Component {
-        val content = comp.contents
-        var mut: MutableComponent? = null
+    private fun replaceEmotes(
+        comp: Component,
+        filter: (EmoteDataBundle, ChatEmote) -> Boolean
+    ): Component = componentFactory.run {
+        val content = comp.literalContent()
+        var mut: AbstractImmutableComponentBuilder<Component>? = null
 
         val enableAliases = config.aliases
         val enableEmoticons = config.emoticons
         val enableEmojis = config.emojis
 
-        if ((enableAliases || enableEmoticons || enableEmojis) && content is LiteralContents) {
-            val text = content.text
+        if ((enableAliases || enableEmoticons || enableEmojis) && content.isPresent) {
+            val text = content.get()
             val aliasEnds = IntArrayList(4) // Example: :x::y: is [2, 5]
             var startClip = 0
             var aliasStart = -1
@@ -166,10 +171,10 @@ abstract class EmoteDecoratorBase : ChatDecorator {
             fun addEmotes() {
                 emotesForAliasCombo(text, aliasEnds, aliasStart, filter) { raw, emote, start, end ->
                     if (emote != null) {
-                        val mut0 = mut ?: Component.empty().also { mut = it }
+                        var mut0 = mut ?: empty()
                         if (startClip < start - 1)
                             mut0 += text.substring(startClip, start - 1)
-                        mut0 += createEmoteComponent(emote, ":$raw:")
+                        mut = mut0 + createEmoteComponent(emote, ":$raw:")
                         startClip = end + 1
                     }
                 }
@@ -178,9 +183,9 @@ abstract class EmoteDecoratorBase : ChatDecorator {
             }
 
             fun insertEmote(emote: ChatEmote, emoticon: String, from: Int, to: Int) {
-                val mut0 = mut ?: Component.empty().also { mut = it }
-                mut0 += text.substring(startClip, from)
-                mut0 += createEmoteComponent(emote, emoticon)
+                mut = (mut ?: empty()) +
+                        text.substring(startClip, from) +
+                        createEmoteComponent(emote, emoticon)
                 startClip = to
             }
 
@@ -255,12 +260,13 @@ abstract class EmoteDecoratorBase : ChatDecorator {
                     insertEmote(emote, emoticon, startEmoticon, text.length)
                 }
             }
-            val mut0 = mut ?: return comp
+            var mut0 = mut ?: return comp
             if (startClip != text.length) {
                 mut0 += text.substring(startClip)
             }
-            mut0 += comp.siblings
             return mut0
+                .append(comp.siblingComponents)
+                .build()
         }
         return comp
     }

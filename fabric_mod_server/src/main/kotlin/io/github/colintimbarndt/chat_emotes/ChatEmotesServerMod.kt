@@ -1,6 +1,7 @@
 package io.github.colintimbarndt.chat_emotes
 
 import com.mojang.brigadier.CommandDispatcher
+import com.mojang.brigadier.context.CommandContext
 import io.github.colintimbarndt.chat_emotes.command.ChatEmotesCommand
 import io.github.colintimbarndt.chat_emotes.common.ChatEmotesServerModBase
 import io.github.colintimbarndt.chat_emotes.common.LOGGER
@@ -8,6 +9,7 @@ import io.github.colintimbarndt.chat_emotes.common.MOD_ID
 import io.github.colintimbarndt.chat_emotes.common.Registries
 import io.github.colintimbarndt.chat_emotes.common.config.ChatEmotesConfig
 import io.github.colintimbarndt.chat_emotes.data.EmoteDataLoader
+import io.github.colintimbarndt.chat_emotes.permissions.VanillaPermissionsAdapter
 import net.fabricmc.api.DedicatedServerModInitializer
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
 import net.fabricmc.fabric.api.message.v1.ServerMessageDecoratorEvent
@@ -17,10 +19,14 @@ import net.fabricmc.loader.api.metadata.ModMetadata
 import net.minecraft.commands.CommandBuildContext
 import net.minecraft.commands.CommandSourceStack
 import net.minecraft.commands.Commands.CommandSelection
+import net.minecraft.network.chat.Component
+import net.minecraft.server.level.ServerPlayer
 import net.minecraft.server.packs.PackType
 import java.nio.file.Path
 
-object ChatEmotesServerMod : ChatEmotesServerModBase(), DedicatedServerModInitializer {
+object ChatEmotesServerMod :
+    ChatEmotesServerModBase<ServerPlayer, CommandSourceStack, CommandContext<CommandSourceStack>, Component>(),
+    DedicatedServerModInitializer {
     override lateinit var configPath: Path private set
     override lateinit var config: ChatEmotesConfig
     override lateinit var registries: Registries private set
@@ -43,8 +49,13 @@ object ChatEmotesServerMod : ChatEmotesServerModBase(), DedicatedServerModInitia
             reloadConfig()
         }
         CommandRegistrationCallback.EVENT.register(::onRegisterCommands)
-        ServerMessageDecoratorEvent.EVENT.register(ServerMessageDecoratorEvent.CONTENT_PHASE, EmoteDecorator)
+        ServerMessageDecoratorEvent.EVENT.register(
+            ServerMessageDecoratorEvent.CONTENT_PHASE,
+            EmoteDecorator
+        )
         ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(emoteDataLoader)
+
+        permissionsAdapter = VanillaPermissionsAdapter
     }
 
     private fun onRegisterCommands(

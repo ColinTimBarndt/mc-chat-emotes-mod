@@ -9,21 +9,58 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import net.minecraft.resources.ResourceLocation
 
 private val colonRegex = Regex(":")
 
-private val emptyArray = ArrayList<String>(0)
+private val emptyArrayList = ArrayList<String>(0)
+
+@Serializable(ResourceLocationDeserializer::class)
+data class ResourceLocation(
+    val namespace: String,
+    val path: String,
+) {
+    init {
+        assert(isValidNamespace(namespace))
+        assert(isValidPath(path))
+    }
+
+    companion object {
+        fun isValidPath(string: String): Boolean {
+            for (element in string) {
+                if (!validPathChar(element)) {
+                    return false
+                }
+            }
+            return true
+        }
+
+        fun isValidNamespace(string: String): Boolean {
+            for (element in string) {
+                if (!validNamespaceChar(element)) {
+                    return false
+                }
+            }
+            return true
+        }
+
+        private fun validPathChar(c: Char): Boolean {
+            return (c == '_' || c == '-' || c in 'a'..'z' || c in '0'..'9') || c == '/' || c == '.'
+        }
+
+        private fun validNamespaceChar(c: Char): Boolean {
+            return (c == '_' || c == '-' || c in 'a'..'z' || c in '0'..'9') || c == '.'
+        }
+    }
+}
 
 @Serializable
 data class ChatEmote(
     val name: String? = null,
     val category: String? = null,
     val emoji: String? = null,
-    val aliases: ArrayList<String> = emptyArray,
-    val emoticons: ArrayList<String> = emptyArray,
+    val aliases: ArrayList<String> = emptyArrayList,
+    val emoticons: ArrayList<String> = emptyArrayList,
     val char: Char,
-    @Serializable(ResourceLocationDeserializer::class)
     val font: ResourceLocation,
 ) {
     @Transient
@@ -32,7 +69,7 @@ data class ChatEmote(
     }
 
     @Transient
-    val aliasWithColons = aliasesWithInnerColons.firstOrNull() ?.let { ":$it:" }
+    val aliasWithColons = aliasesWithInnerColons.firstOrNull()?.let { ":$it:" }
 }
 
 private class ResourceLocationDeserializer : KSerializer<ResourceLocation> {
@@ -40,9 +77,14 @@ private class ResourceLocationDeserializer : KSerializer<ResourceLocation> {
     override val descriptor: SerialDescriptor
         get() = serializer.descriptor
 
-    override fun deserialize(decoder: Decoder) = ResourceLocation(decoder.decodeString())
+    override fun deserialize(decoder: Decoder): ResourceLocation {
+        val str = decoder.decodeString()
+        val idx = str.indexOf(':')
+        return if (idx == -1) ResourceLocation("minecraft", str)
+        else ResourceLocation(str.substring(0, idx), str.substring(idx + 1))
+    }
+
     override fun serialize(encoder: Encoder, value: ResourceLocation) {
         encoder.encodeString(value.toString())
     }
-
 }

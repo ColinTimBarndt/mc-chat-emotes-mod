@@ -1,35 +1,31 @@
 package io.github.colintimbarndt.chat_emotes.common.util
 
+import io.github.colintimbarndt.chat_emotes.common.abstraction.AbstractComponentBuilder
+import io.github.colintimbarndt.chat_emotes.common.abstraction.AbstractComponentFactory
 import io.github.colintimbarndt.chat_emotes.common.util.StringBuilderExt.plusAssign
-import net.minecraft.network.chat.Component
-import net.minecraft.network.chat.MutableComponent
 import java.util.*
 
 @Suppress("NOTHING_TO_INLINE")
 object ComponentUtils {
-    inline fun fallback(fallback: Component, other: Component): MutableComponent {
-        return Component.translatable("%1\$s%784014\$s", fallback, other)
+    const val FALLBACK_TRANSLATION_KEY = "%1\$s%784014\$s"
+
+    inline fun <Component> AbstractComponentFactory<Component>.fallback(
+        fallback: Component,
+        other: Component
+    ): AbstractComponentBuilder<Component> {
+        return translatable(FALLBACK_TRANSLATION_KEY, listOf(fallback, other))
     }
 
-    fun fallbackTranslatable(key: String, vararg args: Any?): MutableComponent {
-        val inner = Component.translatable(key, *args)
+    fun <Component> AbstractComponentFactory<Component>.fallbackTranslatable(
+        key: String,
+        args: List<Component>
+    ): AbstractComponentBuilder<Component> {
+        val inner = translatable(key, args).build()
         val builder = StringBuilder()
         inner.visit {
             builder += it
-            Optional.empty<Any>()
+            Optional.empty<Nothing>()
         }
-        return fallback(Component.literal(builder.toString()), inner)
-    }
-
-    inline operator fun MutableComponent.plusAssign(raw: String) {
-        append(raw)
-    }
-
-    inline operator fun MutableComponent.plusAssign(c: Component) {
-        append(c)
-    }
-
-    inline operator fun MutableComponent.plusAssign(cs: List<Component>) {
-        for (c in cs) this += c
+        return fallback(text(builder.toString()), inner)
     }
 }

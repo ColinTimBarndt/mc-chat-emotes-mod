@@ -6,14 +6,15 @@ import io.github.colintimbarndt.chat_emotes.common.config.ChatEmotesConfig
 import io.github.colintimbarndt.chat_emotes.common.data.ChatEmote
 import io.github.colintimbarndt.chat_emotes.common.data.EmoteDataBundle
 import io.github.colintimbarndt.chat_emotes.common.data.EmoteDataLoaderBase
+import io.github.colintimbarndt.chat_emotes.common.data.ResourceLocation
+import io.github.colintimbarndt.chat_emotes.common.permissions.NoPermissionsAdapter
 import io.github.colintimbarndt.chat_emotes.common.permissions.PermissionsAdapter
 import io.github.colintimbarndt.chat_emotes.common.permissions.VanillaPermissionsAdapter
-import net.minecraft.resources.ResourceLocation
 import java.nio.file.Path
 import kotlin.io.path.Path
 
 object MockEmoteDataLoader : EmoteDataLoaderBase() {
-    override val serverMod get() = MockServerMod
+    override val config get() = MockServerMod.config
 
     val FOO_EMOTE = ChatEmote(
         name = "foo emote",
@@ -60,16 +61,16 @@ object MockEmoteDataLoader : EmoteDataLoaderBase() {
     }
 }
 
-object MockServerMod : ChatEmotesServerModBase() {
+object MockServerMod : ChatEmotesServerModBase<Any?, Any?, Any?, Unit>() {
     override var config = ChatEmotesConfig()
     override val configPath: Path = Path("")
     override val emoteDataLoader = MockEmoteDataLoader
     override val registries = Registries()
-    override val emoteDecorator = object : EmoteDecoratorBase() {
+    override val emoteDecorator = object : EmoteDecoratorBase<Any?, Any?, Unit>() {
         override val config: ChatEmotesConfig
             get() = this@MockServerMod.config
-        override val permissionsAdapter: PermissionsAdapter
-            get() = VanillaPermissionsAdapter
+        override val permissionsAdapter
+            get() = NoPermissionsAdapter
         override val emoteDataLoader: EmoteDataLoaderBase
             get() = this@MockServerMod.emoteDataLoader
     }

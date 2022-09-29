@@ -2,21 +2,21 @@ package io.github.colintimbarndt.chat_emotes.common
 
 import io.github.colintimbarndt.chat_emotes.common.config.ChatEmotesConfig
 import io.github.colintimbarndt.chat_emotes.common.data.EmoteDataLoaderBase
+import io.github.colintimbarndt.chat_emotes.common.permissions.NoPermissionsAdapter
 import io.github.colintimbarndt.chat_emotes.common.permissions.PermissionsAdapter
-import io.github.colintimbarndt.chat_emotes.common.permissions.VanillaPermissionsAdapter
 import kotlinx.serialization.SerializationException
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
 import java.nio.file.Path
 
-abstract class ChatEmotesServerModBase {
+abstract class ChatEmotesServerModBase<P, S, Ctx, Component> {
     abstract var config: ChatEmotesConfig protected set
     abstract val configPath: Path
     abstract val emoteDataLoader: EmoteDataLoaderBase
     abstract val registries: Registries
-    abstract val emoteDecorator: EmoteDecoratorBase
-    var permissionsAdapter: PermissionsAdapter = VanillaPermissionsAdapter
+    abstract val emoteDecorator: EmoteDecoratorBase<P, Component>
+    var permissionsAdapter: PermissionsAdapter<P, S> = NoPermissionsAdapter
 
     fun reloadConfig(): Boolean {
         val file = configPath.resolve("config.json").toFile()

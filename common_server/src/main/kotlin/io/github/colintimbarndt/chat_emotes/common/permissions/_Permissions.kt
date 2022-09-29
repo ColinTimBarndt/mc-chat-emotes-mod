@@ -3,6 +3,7 @@
 package io.github.colintimbarndt.chat_emotes.common.permissions
 
 import com.google.common.base.Predicate
+import com.mojang.brigadier.context.CommandContext
 import io.github.colintimbarndt.chat_emotes.common.NAMESPACE
 import net.minecraft.commands.CommandSourceStack
 
@@ -28,5 +29,5 @@ const val RELOAD_COMMAND_PERMISSION = "$COMMAND_PERMISSION.reload"
  */
 const val EMOTES_PERMISSION = "$NAMESPACE.emotes"
 
-fun PermissionsAdapter.permissionPredicate(name: String): Predicate<CommandSourceStack> =
-    Predicate { it.hasPermission(name) }
+fun PermissionsAdapter<*, CommandSourceStack>.permissionPredicate(name: String): Predicate<CommandSourceStack> =
+    Predicate { contextHasPermission(it, name) }
