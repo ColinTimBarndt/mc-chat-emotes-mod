@@ -2,9 +2,9 @@
 
 package io.github.colintimbarndt.chat_emotes.common.data
 
-import io.github.colintimbarndt.chat_emotes.common.ChatEmotesServerModBase
 import io.github.colintimbarndt.chat_emotes.common.LOGGER
 import io.github.colintimbarndt.chat_emotes.common.NAMESPACE
+import io.github.colintimbarndt.chat_emotes.common.config.ChatEmotesConfig
 import io.github.colintimbarndt.chat_emotes.common.util.Futures
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
@@ -16,7 +16,6 @@ import net.minecraft.util.profiling.ProfilerFiller
 import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
-import kotlin.collections.HashMap
 
 abstract class EmoteDataLoaderBase {
     var loadedEmoteData: List<EmoteDataBundle> = emptyList()
@@ -24,7 +23,7 @@ abstract class EmoteDataLoaderBase {
     val aliasTree = AliasPrefixTree(HashMap(4096))
     val emojiTree = EmojiPrefixTree()
     protected val resourceLoaderIdentifier = ResourceLocation(NAMESPACE, "emotes")
-    protected abstract val serverMod: ChatEmotesServerModBase
+    protected abstract val config: ChatEmotesConfig
 
     fun load(
         manager: ResourceManager,
@@ -57,7 +56,7 @@ abstract class EmoteDataLoaderBase {
         executor: Executor
     ): CompletableFuture<Void?> = Futures.supplyAsync(executor) {
         loadedEmoteData = Collections.unmodifiableList(data)
-        aliasTree.load(loadedEmoteData, serverMod.config.maxCombinedEmote)
+        aliasTree.load(loadedEmoteData, config.maxCombinedEmote)
         emojiTree.load(loadedEmoteData)
         LOGGER.info("Loaded {} emotes", data.asSequence().map { it.size }.sum())
         null
