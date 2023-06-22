@@ -17,6 +17,12 @@ object ComponentUtils {
     }
 
     fun <Component> AbstractComponentFactory<Component>.fallbackTranslatable(
+        key: String
+    ): AbstractComponentBuilder<Component> {
+        return this.fallbackTranslatable(key, Collections.emptyList())
+    }
+
+    fun <Component> AbstractComponentFactory<Component>.fallbackTranslatable(
         key: String,
         args: List<Component>
     ): AbstractComponentBuilder<Component> {

@@ -41,4 +41,4 @@ jobs:
           name: Artifacts
           path: |
             fabric_mod_server/build/libs/
-            util/build/distributions/
+            resourcepack_app/build/distributions/
