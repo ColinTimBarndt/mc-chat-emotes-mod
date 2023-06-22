@@ -1,10 +1,10 @@
 package io.github.colintimbarndt.chat_emotes.common.util
 
 import com.google.gson.stream.JsonWriter
-import com.mojang.bridge.game.PackType
 import net.minecraft.SharedConstants
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
+import net.minecraft.server.packs.PackType
 import java.io.*
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
@@ -57,8 +57,7 @@ class PackWriter(file: File, packType: PackType) : Closeable, AutoCloseable {
         loc: ResourceLocation,
         writer: (OutputStream) -> Unit
     ) {
-        val path = (if (packType == PackType.DATA) "data" else "assets") +
-                "/${loc.namespace}/${loc.path}"
+        val path = "${packType.directory}/${loc.namespace}/${loc.path}"
         write(path, writer)
     }
 

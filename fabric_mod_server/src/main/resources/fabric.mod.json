@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "id": "$mod_id",
+  "id": "chat_emotes_server",
   "version": "$version",
 
-  "name": "Chat Emotes",
-  "description": "Server-Side chat emotes for Minecraft",
+  "name": "$mod_name",
+  "description": "$mod_description",
   "authors": [
     "Colin Tim Barndt"
   ],

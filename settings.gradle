@@ -1,0 +1,15 @@
+pluginManagement {
+    repositories {
+        maven { url "https://maven.fabricmc.net/" }
+        maven { url "https://maven.architectury.dev/" }
+        maven { url "https://maven.minecraftforge.net/" }
+        gradlePluginPortal()
+    }
+}
+
+rootProject.name = 'mc-chat-emotes'
+
+include("common_server")
+include("fabric_mod_server")
+//include("forge_mod_server")
+include("resourcepack_app")

@@ -1,5 +1,3 @@
-import java.util.Properties
-
 plugins {
     id("java")
     kotlin("jvm")
@@ -8,19 +6,16 @@ plugins {
     application
 }
 
+version = project.properties["mod_version"] as String
+group = project.properties["maven_group"] as String
+
+base.archivesName.set("resourcepack_app")
+
 sourceSets {
-
+    main {
+        resources.srcDir("${rootProject.rootDir}/shared_resources")
+    }
 }
-
-val config = Properties()
-File(rootDir, "build.properties").inputStream().use(config::load)
-
-val modVersion = config.getProperty("mod_version")
-val mavenGroup = config.getProperty("maven_group")
-version = modVersion
-group = mavenGroup
-
-base.archivesName.set("emotes-util")
 
 repositories {
     mavenCentral()
@@ -28,14 +23,14 @@ repositories {
 }
 
 dependencies {
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.0")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.2")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.2")
 
     implementation(kotlin("stdlib"))
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0")
-    implementation("org.slf4j:slf4j-api:1.7.36")
-    implementation("org.slf4j:slf4j-simple:1.7.36")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
+    implementation("org.slf4j:slf4j-api:2.0.5")
+    implementation("org.slf4j:slf4j-simple:2.0.5")
 }
 
 application {

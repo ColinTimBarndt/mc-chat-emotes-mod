@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture
 import java.util.function.BiConsumer
 
-private const val langPath = "/assets/$NAMESPACE/lang/en_us.json"
+private const val LANG_PATH = "/assets/$NAMESPACE/lang/en_us.json"
 
 @Inject(
     method = ["loadDefault"],
@@ -30,4 +30,4 @@ private fun loadModTranslations(
     cir: CallbackInfoReturnable<Language>,
     builder: ImmutableMap.Builder<String, String>,
     keyAdder: BiConsumer<String, String>
-) = attemptLoadModLanguage(ChatEmotesServerMod::class.java, langPath, keyAdder)
+) = attemptLoadModLanguage(ChatEmotesServerMod::class.java, LANG_PATH, keyAdder)
