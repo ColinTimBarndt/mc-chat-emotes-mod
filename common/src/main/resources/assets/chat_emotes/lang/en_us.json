@@ -1,10 +1,5 @@
 {
 	"chat.emote": "%s",
 	"commands.chat_emotes.reload.success": "Reloaded config!",
-	"commands.chat_emotes.reload.failure": "Reload failed",
-	"commands.chat_emotes.export.success": "Resourcepack has been saved",
-	"commands.chat_emotes.export.failure": "Resourcepack could not be exported: %s",
-	"commands.chat_emotes.export.failure.no_config": "Emote config is not loaded",
-	"commands.chat_emotes.export.failure.no_pack": "There exists no configuration for this resourcepack",
-	"commands.chat_emotes.export.failure.other": "Resourcepack could not be exported"
+	"commands.chat_emotes.reload.failure": "Reload failed"
 }
