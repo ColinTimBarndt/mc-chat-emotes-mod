@@ -7,20 +7,17 @@ import java.util.*
 
 @Suppress("NOTHING_TO_INLINE")
 object ComponentUtils {
-    const val FALLBACK_TRANSLATION_KEY = "%1\$s%784014\$s"
+    const val EMOTE_TRANSLATION_KEY = "chat.emote"
 
     inline fun <Component> AbstractComponentFactory<Component>.fallback(
         fallback: Component,
-        other: Component
-    ): AbstractComponentBuilder<Component> {
-        return translatable(FALLBACK_TRANSLATION_KEY, listOf(fallback, other))
-    }
+        other: Component,
+        fallbackKey: String
+    ) = translatable(fallbackKey, listOf(other, fallback), "%2\$s")
 
-    fun <Component> AbstractComponentFactory<Component>.fallbackTranslatable(
+    inline fun <Component> AbstractComponentFactory<Component>.fallbackTranslatable(
         key: String
-    ): AbstractComponentBuilder<Component> {
-        return this.fallbackTranslatable(key, Collections.emptyList())
-    }
+    ) = fallbackTranslatable(key, Collections.emptyList())
 
     fun <Component> AbstractComponentFactory<Component>.fallbackTranslatable(
         key: String,
@@ -32,6 +29,14 @@ object ComponentUtils {
             builder += it
             Optional.empty<Nothing>()
         }
-        return fallback(text(builder.toString()), inner)
+        val fallback = text(builder.toString())
+        val argsExt = if (args.isNotEmpty()) ArrayList<Component>(args.size + 1).apply {
+            addAll(args)
+            add(fallback)
+        } else {
+            listOf(fallback)
+        }
+        println("Fallback for $key: $builder")
+        return translatable(key, argsExt, "%${argsExt.size}\$s")
     }
 }

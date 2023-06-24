@@ -5,12 +5,21 @@ package io.github.colintimbarndt.chat_emotes.common.abstraction
 
 import io.github.colintimbarndt.chat_emotes.common.data.ResourceLocation
 import java.util.*
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 abstract class AbstractComponentFactory<Component> {
     open fun empty() = literal("")
     abstract fun literal(text: String): AbstractComponentBuilder<Component>
 
-    abstract fun translatable(key: String, with: List<Component>): AbstractComponentBuilder<Component>
+    fun translatable(key: String, with: List<Component>) = translatable(key, with, null)
+    abstract fun translatable(
+        key: String,
+        with: List<Component>,
+        fallback: String?,
+    ): AbstractComponentBuilder<Component>
+
     open fun text(text: String) = literal(text).build()
 
     // Component extension
@@ -36,7 +45,8 @@ abstract class AbstractImmutableComponentBuilder<Component> {
     }
 }
 
-abstract class AbstractComponentBuilder<Component> : AbstractImmutableComponentBuilder<Component>() {
+abstract class AbstractComponentBuilder<Component> :
+    AbstractImmutableComponentBuilder<Component>() {
     abstract fun color(color: ChatColor): AbstractComponentBuilder<Component>
     abstract fun bold(bold: Boolean): AbstractComponentBuilder<Component>
     abstract fun italic(italic: Boolean): AbstractComponentBuilder<Component>
@@ -48,7 +58,11 @@ abstract class AbstractComponentBuilder<Component> : AbstractImmutableComponentB
 
     // Helper functions
 
+    @OptIn(ExperimentalContracts::class)
     inline fun onHover(block: HoverContext<Component>.() -> Unit): AbstractComponentBuilder<Component> {
+        contract {
+            callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+        }
         HoverContext(this).block()
         return this
     }

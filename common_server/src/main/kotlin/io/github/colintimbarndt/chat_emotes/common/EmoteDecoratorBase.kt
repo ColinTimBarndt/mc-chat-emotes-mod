@@ -1,15 +1,13 @@
 package io.github.colintimbarndt.chat_emotes.common
 
-import io.github.colintimbarndt.chat_emotes.common.abstraction.ChatColor
 import io.github.colintimbarndt.chat_emotes.common.abstraction.AbstractComponentFactory
 import io.github.colintimbarndt.chat_emotes.common.abstraction.AbstractImmutableComponentBuilder
+import io.github.colintimbarndt.chat_emotes.common.abstraction.ChatColor
 import io.github.colintimbarndt.chat_emotes.common.config.ChatEmotesConfig
-import io.github.colintimbarndt.chat_emotes.common.data.ChatEmote
-import io.github.colintimbarndt.chat_emotes.common.data.EmoteDataBundle
-import io.github.colintimbarndt.chat_emotes.common.data.EmoteDataLoaderBase
-import io.github.colintimbarndt.chat_emotes.common.data.PrefixTreeNode
+import io.github.colintimbarndt.chat_emotes.common.data.*
 import io.github.colintimbarndt.chat_emotes.common.permissions.EMOTES_PERMISSION
 import io.github.colintimbarndt.chat_emotes.common.permissions.PermissionsAdapter
+import io.github.colintimbarndt.chat_emotes.common.util.ComponentUtils.EMOTE_TRANSLATION_KEY
 import io.github.colintimbarndt.chat_emotes.common.util.ComponentUtils.fallback
 import io.github.colintimbarndt.chat_emotes.common.util.HashedStringBuilder
 import it.unimi.dsi.fastutil.ints.IntArrayList
@@ -26,7 +24,7 @@ abstract class EmoteDecoratorBase<P, Component>(
 
     protected abstract val permissionsAdapter: PermissionsAdapter<P, *>
 
-    abstract val emoteDataLoader: EmoteDataLoaderBase
+    abstract val emoteData: EmoteDataSource
     abstract val config: ChatEmotesConfig
 
     fun decorateSync(player: P?, message: Component): Component {
@@ -52,7 +50,7 @@ abstract class EmoteDecoratorBase<P, Component>(
         map: (EmoteDataBundle) -> Map<String, ChatEmote>,
         filter: (EmoteDataBundle, ChatEmote) -> Boolean,
     ): ChatEmote? {
-        val dataList = emoteDataLoader.loadedEmoteData
+        val dataList = emoteData.loadedEmoteData
         for (data in dataList) {
             val result = map(data)[key]
             if (result != null) {
@@ -82,36 +80,38 @@ abstract class EmoteDecoratorBase<P, Component>(
     internal inline fun emotesForAliasCombo(
         text: String,
         ends: IntArrayList,
-        _start: Int,
+        cStart: Int,
         filter: (EmoteDataBundle, ChatEmote) -> Boolean,
         callback: (String, ChatEmote?, Int, Int) -> Unit
     ) {
         contract {
             callsInPlace(callback)
         }
-        var start = _start
+        var start = cStart
         var endLeftBound = 0
         Start@ while (endLeftBound < ends.size) {
             var endIdx = endLeftBound
-            var validEndIdx = 0
             var end = ends.getInt(endIdx)
             var alias = text.substring(start, end)
-            var type = emoteDataLoader.aliasTree[alias]
+            var type = emoteData.aliasTree[alias]
 
+            // Quickly discard without creating a string builder
             if (type == PrefixTreeNode.Invalid) {
                 // No valid emote found
                 callback(alias, null, start, end)
-                start = end + 2
+                start = end + 2 // skip "::"
                 endLeftBound++
                 continue@Start
             }
 
+            // Search for combination (e.g. :foo::bar:)
             val aliasBuilder = HashedStringBuilder(alias)
             var endPrev = end
+            var validEndIdx = endIdx
             if (++endIdx < ends.size) do {
                 val endNext = ends.getInt(endIdx)
                 aliasBuilder.append(text, endPrev, endNext)
-                type = emoteDataLoader.aliasTree[aliasBuilder]
+                type = emoteData.aliasTree[aliasBuilder]
                 if (type == PrefixTreeNode.Valid) {
                     validEndIdx = endIdx
                     end = endNext
@@ -120,10 +120,10 @@ abstract class EmoteDecoratorBase<P, Component>(
                 endPrev = endNext
                 endIdx++
             } while (type != PrefixTreeNode.Invalid && endIdx < ends.size)
-            // Valid emote (sequence) found
+            // Valid emote (sequence) found or invalid
             val emote = emoteForAlias(alias, filter)
             callback(alias, emote, start, end)
-            start = end + 2
+            start = end + 2 // skip "::"
             endLeftBound = validEndIdx + 1
         }
     }
@@ -135,12 +135,14 @@ abstract class EmoteDecoratorBase<P, Component>(
                 literal(emote.char.toString())
                     .font(emote.font)
                     .color(FONT_BASE_COLOR)
-                    .build()
+                    .build(),
+                EMOTE_TRANSLATION_KEY
             )
-            if (emote.aliasWithColons != null) {
+            val colons = emote.aliasWithColons
+            if (colons != null) {
                 component = component.onHover {
                     showText(
-                        literal(emote.aliasWithColons)
+                        literal(colons)
                             .color(HIGHLIGHT_COLOR)
                             .build()
                     )
@@ -218,7 +220,7 @@ abstract class EmoteDecoratorBase<P, Component>(
                     }
 
                     else -> if (enableEmojis) {
-                        var state = emoteDataLoader.emojiTree[char]
+                        var state = emoteData.emojiTree[char]
                         if (state != PrefixTreeNode.Invalid) {
                             var emoji = if (state == PrefixTreeNode.Valid) char.toString() else null
                             val start = i
@@ -229,7 +231,7 @@ abstract class EmoteDecoratorBase<P, Component>(
                                 var endPrev = endNext++
                                 do {
                                     emojiBuilder.append(text, endPrev, endNext)
-                                    state = emoteDataLoader.emojiTree[emojiBuilder]
+                                    state = emoteData.emojiTree[emojiBuilder]
                                     if (state == PrefixTreeNode.Valid) {
                                         emoji = emojiBuilder.toString()
                                         end = endNext

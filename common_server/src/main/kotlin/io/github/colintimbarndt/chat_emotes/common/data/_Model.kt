@@ -24,6 +24,8 @@ data class ResourceLocation(
         assert(isValidPath(path))
     }
 
+    constructor(full: String) : this(getNamespace(full), getPath(full))
+
     companion object {
         fun isValidPath(string: String): Boolean {
             for (element in string) {
@@ -49,6 +51,16 @@ data class ResourceLocation(
 
         private fun validNamespaceChar(c: Char): Boolean {
             return (c == '_' || c == '-' || c in 'a'..'z' || c in '0'..'9') || c == '.'
+        }
+
+        private fun getNamespace(full: String): String {
+            val idx = full.indexOf(':')
+            return if (idx == -1) "minecraft" else full.substring(0, idx)
+        }
+
+        private fun getPath(full: String): String {
+            val idx = full.indexOf(':')
+            return full.substring(idx + 1)
         }
     }
 }

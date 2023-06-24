@@ -28,6 +28,7 @@ bin/
 
 *.DS_Store
 
-# fabric
+# other
 
-fabric_mod_*/run/
+/mod/*/run/
+*.log

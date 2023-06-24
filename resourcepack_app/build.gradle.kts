@@ -1,32 +1,19 @@
 plugins {
-    id("java")
-    kotlin("jvm")
     kotlin("plugin.serialization")
     id("org.openjfx.javafxplugin") version "0.0.8"
     application
 }
 
-version = project.properties["mod_version"] as String
-group = project.properties["maven_group"] as String
-
 base.archivesName.set("resourcepack_app")
 
-sourceSets {
-    main {
-        resources.srcDir("${rootProject.rootDir}/shared_resources")
-    }
-}
-
 repositories {
-    mavenCentral()
     maven("https://nexus.covers1624.net/repository/karmakrafts-releases/")
+    mavenCentral()
 }
 
 dependencies {
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.2")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.2")
-
     implementation(kotlin("stdlib"))
+    implementation(project(":common"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
     implementation("org.slf4j:slf4j-api:2.0.5")
@@ -50,6 +37,15 @@ tasks {
         sourceCompatibility = javaVersion.toString()
         targetCompatibility = javaVersion.toString()
         options.release.set(javaVersion.toString().toInt())
+    }
+    jar {
+        manifest {
+            attributes["Implementation-Title"] = application.applicationName
+            attributes["Implementation-Version"] = project.version
+            attributes["Main-Class"] = application.mainClass
+        }
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+        from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
     }
     getByName<Test>("test") {
         useJUnitPlatform()

@@ -9,7 +9,9 @@ pluginManagement {
 
 rootProject.name = 'mc-chat-emotes'
 
-include("common_server")
-include("fabric_mod_server")
-//include("forge_mod_server")
-include("resourcepack_app")
+include ':mod:common_mod_server'
+include ':mod:fabric_server'
+include ':mod:forge_server'
+include ':resourcepack_app'
+include ':common_server'
+include ':common'

@@ -37,7 +37,7 @@ class EmoteDecoratorTest {
         )
 
         var i = 0
-        MockServerMod.emoteDecorator.emotesForAliasCombo(
+        MockEmoteDecorator.emotesForAliasCombo(
             text,
             ends,
             start,
@@ -75,7 +75,7 @@ class EmoteDecoratorTest {
         )
 
         var i = 0
-        MockServerMod.emoteDecorator.emotesForAliasCombo(
+        MockEmoteDecorator.emotesForAliasCombo(
             text,
             ends,
             start,

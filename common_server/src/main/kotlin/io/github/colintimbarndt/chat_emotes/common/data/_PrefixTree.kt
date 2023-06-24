@@ -11,7 +11,7 @@ import io.netty.util.collection.CharObjectHashMap
 value class AliasPrefixTree(
     private val data: HashMap<String, PrefixTreeNode>
 ) {
-    internal fun load(bundles: List<EmoteDataBundle>, depthLimit: Int) {
+    fun load(bundles: List<EmoteDataBundle>, depthLimit: Int) {
         data.clear()
         val dblDepthLimit = depthLimit shl 1
         bundles.asSequence()
@@ -44,7 +44,7 @@ class EmojiPrefixTree {
     private val charData = CharObjectHashMap<PrefixTreeNode>(1024)
     private val data = HashMap<String, PrefixTreeNode>()
 
-    internal fun load(bundles: List<EmoteDataBundle>) {
+    fun load(bundles: List<EmoteDataBundle>) {
         charData.clear()
         data.clear()
         bundles.asSequence()
