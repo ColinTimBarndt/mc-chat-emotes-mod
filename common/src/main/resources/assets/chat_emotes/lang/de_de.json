@@ -1,0 +1,10 @@
+{
+  "chat.emote": "%s",
+  "commands.chat_emotes.reload.success": "Konfiguration neu geladen!",
+  "commands.chat_emotes.reload.failure": "Neuladen fehlgeschlagen",
+  "commands.chat_emotes.export.success": "Ressourcenpaken wurde gespeichert",
+  "commands.chat_emotes.export.failure": "Ressourcenpaket konnte nicht exportiert werden: %s",
+  "commands.chat_emotes.export.failure.no_config": "Emote-Konfiguration is nicht geladen",
+  "commands.chat_emotes.export.failure.no_pack": "Es existiert keine Konfiguration für dieses Ressourcenpaket",
+  "commands.chat_emotes.export.failure.other": "Ressourcenpaket konnte nicht exportiert werden"
+}

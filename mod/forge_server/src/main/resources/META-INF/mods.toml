@@ -1,0 +1,36 @@
+modLoader = "javafml"
+loaderVersion = "[45,)"
+issueTrackerURL = "https://github.com/ColinTimBarndt/fabric_chat-emotes/issues"
+license = "CC-BY-SA-4.0"
+
+[[mods]]
+modId = "chat_emotes_server"
+version = "$version"
+displayName = "$mod_name"
+authors = "Colin Tim Barndt"
+description = '''
+$mod_description
+'''
+logoFile = "assets/chat_emotes/icon.png"
+displayURL = "https://github.com/ColinTimBarndt/fabric_chat-emotes"
+
+[[dependencies.chat_emotes_server]]
+modId = "forge"
+mandatory = true
+versionRange = "[45,)"
+ordering = "NONE"
+side = "SERVER"
+
+[[dependencies.chat_emotes_server]]
+modId = "minecraft"
+mandatory = true
+versionRange = "[1.19.4,)"
+ordering = "NONE"
+side = "SERVER"
+
+#[[dependencies.chat_emotes_server]]
+#modId = "architectury"
+#mandatory = true
+#versionRange = "[8.1.79,)"
+#ordering = "AFTER"
+#side = "SERVER"

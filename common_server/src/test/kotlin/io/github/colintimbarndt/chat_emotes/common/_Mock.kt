@@ -2,19 +2,20 @@
 
 package io.github.colintimbarndt.chat_emotes.common
 
+import io.github.colintimbarndt.chat_emotes.common.abstraction.AbstractComponentBuilder
+import io.github.colintimbarndt.chat_emotes.common.abstraction.AbstractComponentFactory
 import io.github.colintimbarndt.chat_emotes.common.config.ChatEmotesConfig
-import io.github.colintimbarndt.chat_emotes.common.data.ChatEmote
-import io.github.colintimbarndt.chat_emotes.common.data.EmoteDataBundle
-import io.github.colintimbarndt.chat_emotes.common.data.EmoteDataLoaderBase
-import io.github.colintimbarndt.chat_emotes.common.data.ResourceLocation
+import io.github.colintimbarndt.chat_emotes.common.data.*
 import io.github.colintimbarndt.chat_emotes.common.permissions.NoPermissionsAdapter
-import io.github.colintimbarndt.chat_emotes.common.permissions.PermissionsAdapter
-import io.github.colintimbarndt.chat_emotes.common.permissions.VanillaPermissionsAdapter
-import java.nio.file.Path
-import kotlin.io.path.Path
+import java.util.*
 
-object MockEmoteDataLoader : EmoteDataLoaderBase() {
-    override val config get() = MockServerMod.config
+val MOCK_CONFIG = ChatEmotesConfig()
+
+object MockEmoteDataLoader : EmoteDataSource {
+    override lateinit var loadedEmoteData: List<EmoteDataBundle>
+        private set
+    override val aliasTree = AliasPrefixTree(HashMap())
+    override val emojiTree = EmojiPrefixTree()
 
     val FOO_EMOTE = ChatEmote(
         name = "foo emote",
@@ -49,29 +50,39 @@ object MockEmoteDataLoader : EmoteDataLoaderBase() {
 
     init {
         loadedEmoteData = listOf(
-            EmoteDataBundle(ResourceLocation("mock:emotes"), arrayListOf(
-                FOO_EMOTE,
-                BAR_EMOTE,
-                BAZ_EMOTE,
-                BAR_BAZ_EMOTE,
-                BAR_FOO_BAZ_EMOTE
-            ))
+            EmoteDataBundle(
+                ResourceLocation("mock:emotes"), arrayListOf(
+                    FOO_EMOTE,
+                    BAR_EMOTE,
+                    BAZ_EMOTE,
+                    BAR_BAZ_EMOTE,
+                    BAR_FOO_BAZ_EMOTE
+                )
+            )
         )
         aliasTree.load(loadedEmoteData, 3)
     }
 }
 
-object MockServerMod : ChatEmotesServerModBase<Any?, Any?, Any?, Unit>() {
-    override var config = ChatEmotesConfig()
-    override val configPath: Path = Path("")
-    override val emoteDataLoader = MockEmoteDataLoader
-    override val registries = Registries()
-    override val emoteDecorator = object : EmoteDecoratorBase<Any?, Any?, Unit>() {
-        override val config: ChatEmotesConfig
-            get() = this@MockServerMod.config
-        override val permissionsAdapter
-            get() = NoPermissionsAdapter
-        override val emoteDataLoader: EmoteDataLoaderBase
-            get() = this@MockServerMod.emoteDataLoader
-    }
+object MockEmoteDecorator : EmoteDecoratorBase<Any?, Unit>(MockComponentFactory) {
+    override val config = MOCK_CONFIG
+    override val permissionsAdapter = NoPermissionsAdapter
+    override val emoteData = MockEmoteDataLoader
+}
+
+object MockComponentFactory : AbstractComponentFactory<Unit>() {
+    override fun literal(text: String): AbstractComponentBuilder<Unit> =
+        throw RuntimeException("Mock")
+
+    override val Unit.siblingComponents: List<Unit>
+        get() = throw RuntimeException("Mock")
+
+    override fun Unit.literalContent(): Optional<String> =
+        throw RuntimeException("Mock")
+
+    override fun <T> Unit.visit(visitor: (text: String) -> Optional<T>): Optional<T> =
+        throw RuntimeException("Mock")
+
+    override fun translatable(key: String, with: List<Unit>, fallback: String?): AbstractComponentBuilder<Unit> =
+        throw RuntimeException("Mock")
 }

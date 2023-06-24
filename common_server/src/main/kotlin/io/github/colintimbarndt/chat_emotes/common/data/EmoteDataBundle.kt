@@ -1,6 +1,5 @@
 package io.github.colintimbarndt.chat_emotes.common.data
 
-import net.minecraft.resources.ResourceLocation
 import java.util.*
 import kotlin.collections.HashMap
 
