@@ -1,5 +1,5 @@
 modLoader = "kotlinforforge"
-loaderVersion = "[1,)"
+loaderVersion = "[4.2,)"
 issueTrackerURL = "https://github.com/ColinTimBarndt/mc-chat-emotes-mod/issues"
 license = "CC-BY-SA-4.0"
 

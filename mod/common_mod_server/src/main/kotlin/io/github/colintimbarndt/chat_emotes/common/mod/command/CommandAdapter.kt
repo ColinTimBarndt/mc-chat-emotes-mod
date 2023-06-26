@@ -1,4 +1,4 @@
-package io.github.colintimbarndt.chat_emotes.command
+package io.github.colintimbarndt.chat_emotes.common.mod.command
 
 import com.mojang.brigadier.context.CommandContext
 import io.github.colintimbarndt.chat_emotes.common.abstraction.AbstractCommandAdapter

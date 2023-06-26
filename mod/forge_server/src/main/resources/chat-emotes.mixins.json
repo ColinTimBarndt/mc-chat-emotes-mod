@@ -1,11 +1,10 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "io.github.colintimbarndt.chat_emotes.mixin",
+  "package": "io.github.colintimbarndt.chat_emotes.forge.mixin",
   "compatibilityLevel": "JAVA_17",
-  "mixins": [],
-  "server": [
-    "LanguageMixin"
+  "mixins": [
+    "MinecraftServerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

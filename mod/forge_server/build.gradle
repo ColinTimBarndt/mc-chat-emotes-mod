@@ -31,7 +31,7 @@ dependencies {
     forge "net.minecraftforge:forge:${rootProject.forge_version}"
     // Remove the next line if you don't want to depend on the API
     //modApi "dev.architectury:architectury-forge:${rootProject.architectury_version}"
-    modImplementation "net.fabricmc:fabric-language-kotlin:1.9.5+kotlin.1.8.22"
+    implementation "thedarkcolour:kotlinforforge:4.2.0"
 
     common(project(path: ":mod:common_mod_server", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":mod:common_mod_server", configuration: "transformProductionForge")) { transitive = false }

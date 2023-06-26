@@ -10,7 +10,10 @@ object PackLangProvider {
     fun load(): Map<String, PackLang> {
         val languages = Json.decodeFromStream<List<String>>(streamAsset("/assets/packLangs.json")!!)
         return languages.associateWith {
-            Json.decodeFromStream(streamAsset("/assets/chat_emotes/lang/$it.json")!!)
+            val raw: LinkedHashMap<String, String> =
+                Json.decodeFromStream(streamAsset("/assets/chat_emotes/lang/$it.json")!!)
+            raw["chat.emote"] = "%s"
+            raw
         }
     }
 }

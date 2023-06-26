@@ -22,13 +22,11 @@
     "server": [
       {
         "adapter": "kotlin",
-        "value": "io.github.colintimbarndt.chat_emotes.ChatEmotesServerMod"
+        "value": "io.github.colintimbarndt.chat_emotes.fabric.ChatEmotesServerMod"
       }
     ]
   },
-  "mixins": [
-    "chat-emotes.mixins.json"
-  ],
+  "mixins": [],
 
   "depends": {
     "fabricloader": ">=0.14.6",

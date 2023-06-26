@@ -1,6 +1,5 @@
-package io.github.colintimbarndt.chat_emotes
+package io.github.colintimbarndt.chat_emotes.common.mod
 
-import io.github.colintimbarndt.chat_emotes.common.ComponentBuilder
 import io.github.colintimbarndt.chat_emotes.common.abstraction.AbstractComponentFactory
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.contents.LiteralContents

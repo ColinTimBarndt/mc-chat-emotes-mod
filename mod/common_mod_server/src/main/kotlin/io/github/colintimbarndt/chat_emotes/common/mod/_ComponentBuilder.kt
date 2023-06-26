@@ -1,6 +1,6 @@
 @file:JvmName("ComponentBuilderKt")
 
-package io.github.colintimbarndt.chat_emotes.common
+package io.github.colintimbarndt.chat_emotes.common.mod
 
 import io.github.colintimbarndt.chat_emotes.common.abstraction.AbstractComponentBuilder
 import io.github.colintimbarndt.chat_emotes.common.abstraction.AbstractImmutableComponentBuilder

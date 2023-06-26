@@ -1,4 +1,4 @@
-package io.github.colintimbarndt.chat_emotes
+package io.github.colintimbarndt.chat_emotes.common.mod
 
 import io.github.colintimbarndt.chat_emotes.common.EmoteDecoratorBase
 import net.minecraft.network.chat.ChatDecorator
@@ -6,18 +6,18 @@ import net.minecraft.network.chat.Component
 import net.minecraft.server.level.ServerPlayer
 import java.util.concurrent.CompletableFuture
 
-object EmoteDecorator :
-    EmoteDecoratorBase<ServerPlayer, Component>(
-        ComponentFactory
-    ), ChatDecorator {
+class EmoteDecorator(
+    private val mod: ChatEmotesServerModBase
+) : EmoteDecoratorBase<ServerPlayer, Component>(ComponentFactory), ChatDecorator {
+
     override val emoteData
-        get() = ChatEmotesServerMod.emoteDataLoader
+        get() = mod.emoteDataLoader
 
     override val config
-        get() = ChatEmotesServerMod.config
+        get() = mod.config
 
     override val permissionsAdapter
-        get() = ChatEmotesServerMod.permissionsAdapter
+        get() = mod.permissionsAdapter
 
     override fun decorate(
         serverPlayer: ServerPlayer?,
