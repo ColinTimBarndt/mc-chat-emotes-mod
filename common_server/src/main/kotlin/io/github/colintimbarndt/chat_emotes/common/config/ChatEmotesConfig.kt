@@ -29,6 +29,8 @@ data class ChatEmotesConfig(
             encodeDefaults = true
         }
 
+        val DEFAULT = ChatEmotesConfig()
+
         @OptIn(ExperimentalSerializationApi::class)
         @Throws(IOException::class, kotlinx.serialization.SerializationException::class)
         fun load(stream: InputStream?) =

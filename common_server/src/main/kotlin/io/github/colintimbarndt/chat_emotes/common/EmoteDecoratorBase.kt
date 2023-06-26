@@ -158,9 +158,10 @@ abstract class EmoteDecoratorBase<P, Component>(
         val content = comp.literalContent()
         var mut: AbstractImmutableComponentBuilder<Component>? = null
 
-        val enableAliases = config.aliases
-        val enableEmoticons = config.emoticons
-        val enableEmojis = config.emojis
+        val conf = config
+        val enableAliases = conf.aliases
+        val enableEmoticons = conf.emoticons
+        val enableEmojis = conf.emojis
 
         if ((enableAliases || enableEmoticons || enableEmojis) && content.isPresent) {
             val text = content.get()

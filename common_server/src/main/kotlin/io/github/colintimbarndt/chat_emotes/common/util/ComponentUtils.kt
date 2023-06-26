@@ -36,7 +36,6 @@ object ComponentUtils {
         } else {
             listOf(fallback)
         }
-        println("Fallback for $key: $builder")
         return translatable(key, argsExt, "%${argsExt.size}\$s")
     }
 }

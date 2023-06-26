@@ -1,14 +1,16 @@
 @file:Suppress("UNUSED_PARAMETER")
 
-package io.github.colintimbarndt.chat_emotes.common.data
+package io.github.colintimbarndt.chat_emotes.common.mod.data
 
 import io.github.colintimbarndt.chat_emotes.common.LOGGER
 import io.github.colintimbarndt.chat_emotes.common.NAMESPACE
 import io.github.colintimbarndt.chat_emotes.common.config.ChatEmotesConfig
+import io.github.colintimbarndt.chat_emotes.common.data.*
 import io.github.colintimbarndt.chat_emotes.common.util.Futures
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
+import net.minecraft.server.packs.resources.PreparableReloadListener
 import net.minecraft.server.packs.resources.Resource
 import net.minecraft.server.packs.resources.ResourceManager
 import net.minecraft.util.profiling.ProfilerFiller
@@ -16,7 +18,7 @@ import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
 
-abstract class EmoteDataLoaderBase : EmoteDataSource {
+abstract class EmoteDataLoaderBase : PreparableReloadListener, EmoteDataSource {
     override var loadedEmoteData: List<EmoteDataBundle> = emptyList()
         protected set
     override val aliasTree = AliasPrefixTree(HashMap(4096))
@@ -24,7 +26,21 @@ abstract class EmoteDataLoaderBase : EmoteDataSource {
     protected val resourceLoaderIdentifier = ResourceLocation(NAMESPACE, "emotes")
     protected abstract val config: ChatEmotesConfig
 
-    fun load(
+    override fun reload(
+        preparationBarrier: PreparableReloadListener.PreparationBarrier,
+        manager: ResourceManager,
+        loadProfiler: ProfilerFiller,
+        applyProfiler: ProfilerFiller,
+        loadExecutor: Executor,
+        applyExecutor: Executor
+    ): CompletableFuture<Void> =
+        load(manager, loadProfiler, loadExecutor)
+            .thenCompose(preparationBarrier::wait)
+            .thenComposeAsync { data ->
+                apply(data, manager, applyProfiler, applyExecutor)
+            }
+
+    private fun load(
         manager: ResourceManager,
         profiler: ProfilerFiller,
         executor: Executor
@@ -48,7 +64,7 @@ abstract class EmoteDataLoaderBase : EmoteDataSource {
         dataList
     }
 
-    fun apply(
+    private fun apply(
         data: List<EmoteDataBundle>,
         manager: ResourceManager,
         profiler: ProfilerFiller,
@@ -63,7 +79,10 @@ abstract class EmoteDataLoaderBase : EmoteDataSource {
 
     @OptIn(ExperimentalSerializationApi::class)
     @Suppress("NOTHING_TO_INLINE")
-    private inline fun loadBundle(resource: Resource, resourceLocation: ResourceLocation): EmoteDataBundle {
+    private inline fun loadBundle(
+        resource: Resource,
+        resourceLocation: ResourceLocation
+    ): EmoteDataBundle {
         val emotes = resource.open().use {
             Json.decodeFromStream<ArrayList<ChatEmote>>(it)
         }

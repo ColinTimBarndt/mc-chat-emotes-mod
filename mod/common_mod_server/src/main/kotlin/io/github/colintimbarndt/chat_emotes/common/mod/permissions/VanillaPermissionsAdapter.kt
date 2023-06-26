@@ -1,4 +1,4 @@
-package io.github.colintimbarndt.chat_emotes.permissions
+package io.github.colintimbarndt.chat_emotes.common.mod.permissions
 
 import io.github.colintimbarndt.chat_emotes.common.permissions.COMMAND_PERMISSION
 import io.github.colintimbarndt.chat_emotes.common.permissions.EMOTES_PERMISSION
