@@ -1,6 +1,6 @@
-modLoader = "javafml"
-loaderVersion = "[45,)"
-issueTrackerURL = "https://github.com/ColinTimBarndt/fabric_chat-emotes/issues"
+modLoader = "kotlinforforge"
+loaderVersion = "[1,)"
+issueTrackerURL = "https://github.com/ColinTimBarndt/mc-chat-emotes-mod/issues"
 license = "CC-BY-SA-4.0"
 
 [[mods]]
@@ -12,7 +12,8 @@ description = '''
 $mod_description
 '''
 logoFile = "assets/chat_emotes/icon.png"
-displayURL = "https://github.com/ColinTimBarndt/fabric_chat-emotes"
+displayURL = "https://github.com/ColinTimBarndt/mc-chat-emotes-mod/"
+displayTest = "IGNORE_ALL_VERSION"
 
 [[dependencies.chat_emotes_server]]
 modId = "forge"
