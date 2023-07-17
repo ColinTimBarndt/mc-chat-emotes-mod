@@ -31,14 +31,15 @@ jobs:
         run: chmod +x ./gradlew
       - name: build
         run: |
-          ./gradlew fabric_mod_server:build
-          ./gradlew common_server:build
-          ./gradlew util:build
+          ./gradlew mod:fabric_server:build
+          ./gradlew mod:forge_server:build
+          ./gradlew resourcepack_app:build
       - name: capture build artifacts
         if: ${{ runner.os == 'Linux' && matrix.java == '17' }} # Only upload artifacts built from latest java on one OS
         uses: actions/upload-artifact@v3
         with:
           name: Artifacts
           path: |
-            fabric_mod_server/build/libs/
+            mod/fabric_server/build/libs/
+            mod/forge_server/build/libs/
             resourcepack_app/build/distributions/
